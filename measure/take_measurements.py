@@ -69,7 +69,7 @@ def print_reading():
         print("Skipped Measurement, IOError")
 
 def get_reading():
-        try:
+    try:
         mag   = imu.read_magnetometer()
         gyro  = imu.read_gyroscope()
         euler = imu.read_euler()
