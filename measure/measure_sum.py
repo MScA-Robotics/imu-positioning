@@ -172,7 +172,7 @@ gpg.stop()
 ## and distance back, aka pointing vector magnitude
 ##print(imu.read_euler()[0]) 
 distance_back=math.sqrt(x_total**2+y_total**2)
-direction_back = np.atan2(y_total,x_total)
+direction_back = np.arctan2(y_total,x_total)
 print("return direction (deg CW from north) = %8.2f distance (mm) = %8.2f" % (direction_back, distance_back))
 
 #may need to deal with dividing by zero when x_total = 0
