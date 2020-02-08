@@ -22,4 +22,3 @@ gpg.set_speed(10000)
 time.sleep(1)
 
 gpg.stop()
-

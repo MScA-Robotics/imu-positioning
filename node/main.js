@@ -13,7 +13,7 @@ app.set("view engine", "ejs");
 
 // Pre Route Middleware
 app.use(layouts);
-app.use(homeController.logRequestPaths);
+app.use(driveController.logRequestPaths);
 app.use(express.urlencoded({extended: false}) );
 app.use(express.static("public"));
 app.use(express.json());
@@ -26,6 +26,7 @@ app.listen(app.get("port"), () => {
 // Main Routes
 // app.get("/home", driveController.serveIndex);
 app.get("/drive", driveController.drive);
+app.get("/", driveController.drive);
 
 // app.post("/ctl", driveController.ctl)
 
