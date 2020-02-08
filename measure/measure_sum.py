@@ -131,7 +131,7 @@ while  i<100:
     left_prev=left_enc
     x_total=x_total+x
     y_total=y_total+y
-    print("x= %8.2f y=%8.2f" % (x_total/44, y_total/44))
+    print("x (mm) = %8.2f y (mm) = %8.2f" % (x_total, y_total))
     print(imu.read_euler()[0])
     ##print("Duration: {}".format(t2 - t1))
     # print(timedelta(t2, t1))
@@ -145,10 +145,6 @@ while  i<100:
 
 gpg.stop()
 
-##print(imu.read_euler()[0]) 
-distance_back=math.sqrt(x_total*x_total+y_total*y_total)
-##print(distance_back)
-
 #if x_total>0 and y_total>0: ### quadrant 1
 #    direction_back=180+90-math.atan(x_total/y_total)*57.2958
 #elif x_total<0 and y_total>0:### quadrant 4
@@ -160,27 +156,38 @@ distance_back=math.sqrt(x_total*x_total+y_total*y_total)
 ##print(direction_back)
 #print("Back direction= %8.2f dist=%8.2f" % (direction_back, distance_back/44))
 
+### Try quarant 3 and 4
+#if x_total>0 and y_total>0: ### quadrant 1
+#    direction_back=180+90-math.atan(x_total/y_total)*57.2958
+#elif x_total<0 and y_total>0:### quadrant 4
+#    direction_back=180+90+math.atan(x_total/y_total)*57.2958
+#elif x_total<0 and y_total<0:### quadrant 3
+#    direction_back=90-math.atan(x_total/y_total)*57.2958
+#else: ### quadrant 2
+#    direction_back=90+math.atan(x_total/y_total)*57.2958
+###print(direction_back)
+#print("Back direction= %8.2f dist=%8.2f" % (direction_back, distance_back/44))
 
-## Try quarant 3 and 4
-if x_total>0 and y_total>0: ### quadrant 1
-    direction_back=180+90-math.atan(x_total/y_total)*57.2958
-elif x_total<0 and y_total>0:### quadrant 4
-    direction_back=180+90+math.atan(x_total/y_total)*57.2958
-elif x_total<0 and y_total<0:### quadrant 3
-    direction_back=90-math.atan(x_total/y_total)*57.2958
-else: ### quadrant 2
-    direction_back=90+math.atan(x_total/y_total)*57.2958
-##print(direction_back)
-print("Back direction= %8.2f dist=%8.2f" % (direction_back, distance_back/44))
+## print direction_back, aka pointing vector direction CW deg angle from north
+## and distance back, aka pointing vector magnitude
+##print(imu.read_euler()[0]) 
+distance_back=math.sqrt(x_total^2+y_total^2)
+direction_back = np.atan2(y_total,x_total)
+print("return direction (deg CW from north) = %8.2f distance (mm) = %8.2f" % (direction_back, distance_back))
 
+## find rotation, the CW rotation needed to go from pointing vector to return vector
+## quadrant independent method
+## euler heading = bearing = yaw CW from north
+## x_total is x position in mm where x direction is north
+## y is west
+bearing = imu.read_euler()[0] 
+rotation = -(math.pi + bearing + np.arctan2(y_total,x_total)*180/math.pi)
+print("current yaw CW from north = %8.2f rotation = %8.2f" % (bearing, rotation))
 
+#angle=imu.read_euler()[0]
+#angle_delta=direction_back-angle
+#print("current= %8.2f delta=%8.2f" % (angle, angle_delta))
 
-
-
-
-angle=imu.read_euler()[0]
-angle_delta=direction_back-angle
-print("current= %8.2f delta=%8.2f" % (angle, angle_delta))
 ##while angle_delta>1:
   ##  angle=imu.read_euler()[0]
     ##angle_delta=direction_back-angle
@@ -189,9 +196,10 @@ print("current= %8.2f delta=%8.2f" % (angle, angle_delta))
  ##   gpg.stop()
  ##   print("current= %8.2f delta=%8.2f" % (angle, angle_delta))
  
-gpg.turn_degrees(angle_delta)
-print("back inc= %8.2f back cm=%8.2f" % (distance_back/44, distance_back/44*2.54))
-gpg.drive_cm(distance_back/44*2.54)  
+gpg.turn_degrees(rotation)
+print("return distance (mm) = %8.2f" % (distance_back))
+gpg.drive_cm(distance_back/10)  
+#gpg.drive_cm(distance_back/44*2.54)  
 gpg.stop()  
 # Save Out
 #with open('data.pkl', 'wb') as f:
