@@ -4,6 +4,7 @@
   "description": "",
   "main": "main.js",
   "dependencies": {
+    "express": "^4.17.1",
     "node-gopigo3": "^0.0.3"
   },
   "devDependencies": {},
