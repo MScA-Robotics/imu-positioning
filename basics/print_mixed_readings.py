@@ -2,7 +2,6 @@
 
 The program makes a quick drive forward. Once the drive stops then the
 measurements begin.
-
 """
 from __future__ import print_function
 from __future__ import division
@@ -27,7 +26,7 @@ gpg.drive_cm(10,True)
 i = 0
 time_now = datetime.now()
 time_previous = datetime.now()
-while i < 10:
+while i < 50:
     i += 1
     print(gpg.read_encoders())
     

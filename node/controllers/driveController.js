@@ -1,3 +1,7 @@
+const EasyGopigo3 = require('node-gopigo3').EasyGopigo3,
+    gpg = new EasyGopigo3(),
+    sleep = require('sleep');
+
 module.exports = {
   logRequestPaths: (req, res, next) => {
     console.log(`${req.method} request made to: ${req.url}`);
