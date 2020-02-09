@@ -13,12 +13,18 @@ body {
 	height: 100vh;
 }
 
+/*
+ * 21 x 21 squares at 20 px each
+ * Set square width to 20 2-16-2
+ * In driveboard.js the number is set to 441 which is 21^2
+ */
+
 #container {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-wrap: wrap;
-	max-width: 400px;
+	max-width: 420px;
 }
 
 .square {

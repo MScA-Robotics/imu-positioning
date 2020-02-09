@@ -1,6 +1,4 @@
-const EasyGopigo3 = require('node-gopigo3').EasyGopigo3,
-    gpg = new EasyGopigo3(),
-    sleep = require('sleep');
+const sleep = require('sleep');
 
 module.exports = {
   logRequestPaths: (req, res, next) => {

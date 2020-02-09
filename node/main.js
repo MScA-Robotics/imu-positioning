@@ -5,7 +5,8 @@ const express = require('express'),
   layouts = require('express-ejs-layouts'),
   app = express();
 
-const driveController = require("./controllers/driveController"),
+// const driveController = require("./controllers/driveController"),
+const driveController = require("./controllers/driveControllerDev"),
   errorController = require("./controllers/errorController");
 
 app.set("port", process.env.PORT || 3000);
@@ -25,8 +26,8 @@ app.listen(app.get("port"), () => {
 
 // Main Routes
 // app.get("/home", driveController.serveIndex);
-app.get("/drive", driveController.drive);
-app.get("/", driveController.drive);
+app.get("/drive", driveController.driveBoard);
+app.get("/", driveController.driveBoard);
 
 // app.post("/ctl", driveController.ctl)
 
