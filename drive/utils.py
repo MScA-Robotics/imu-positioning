@@ -1,19 +1,20 @@
 from __future__ import print_function
 from __future__ import division
+
 import time
 import pickle
 from datetime import datetime, timedelta
+import math as math
 
 from easygopigo3 import EasyGoPiGo3
 from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
 
 import numpy as np
-import math as math
 
-# Setup Sensors
-imu = InertialMeasurementUnit(bus = "GPG3_AD1")
+
+# Initialize Sensors
+imu = InertialMeasurementUnit(bus="GPG3_AD1")
 gpg = EasyGoPiGo3()
-gpg.reset_encoders()
 
 
 def print_reading():
