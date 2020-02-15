@@ -198,10 +198,11 @@ print("current yaw CW from north = %8.2f rotation = %8.2f" % (bearing, rotation)
  ##   gpg.stop()
  ##   print("current= %8.2f delta=%8.2f" % (angle, angle_delta))
  
-gpg.turn_degrees(355)
+gpg.turn_degrees(rotation)
 print("return distance (mm) = %8.2f" % (distance_back))
-#gpg.drive_cm(distance_back/10)  
-#gpg.drive_cm(distance_back/44*2.54)  
+#gpg.drive_cm(distance_back/10) too long
+#gpg.drive_cm(distance_back/100) too short 
+gpg.drive_cm(distance_back/44*2.54)  
 gpg.stop()  
 # Save Out
 #with open('data.pkl', 'wb') as f:
