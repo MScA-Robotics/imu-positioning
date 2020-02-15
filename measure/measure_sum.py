@@ -88,6 +88,7 @@ def get_reading():
     
     return res
 
+
 def get_position(right_prev,left_prev):
 
     euler = imu.read_euler()
