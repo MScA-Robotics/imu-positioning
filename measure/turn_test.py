@@ -183,7 +183,7 @@ print("return direction (deg CW from north) = %8.2f distance (mm) = %8.2f" % (di
 ## x_total is x position in mm where x direction is north
 ## y is west
 bearing = imu.read_euler()[0] 
-rotation = -(math.pi + bearing + np.arctan2(y_total,x_total)*180/math.pi)
+rotation = -((math.pi + bearing + np.arctan2(y_total,x_total))*180/math.pi)
 print("current yaw CW from north = %8.2f rotation = %8.2f" % (bearing, rotation))
 
 #angle=imu.read_euler()[0]
