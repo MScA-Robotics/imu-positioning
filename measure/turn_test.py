@@ -198,6 +198,10 @@ print("current yaw CW from north = %8.2f rotation = %8.2f" % (bearing, rotation)
  ##   gpg.stop()
  ##   print("current= %8.2f delta=%8.2f" % (angle, angle_delta))
  
+ 
+#test process:
+#check each component of rotation:
+#pi
 gpg.turn_degrees(rotation)
 print("return distance (mm) = %8.2f" % (distance_back))
 #gpg.drive_cm(distance_back/10) too long
