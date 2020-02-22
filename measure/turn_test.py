@@ -121,7 +121,7 @@ right_prev=0
 left_prev=0
 x_total=0
 y_total=0
-while  i<50:
+while  i<80:
     # Execute
     ##print_reading()
     #data.append(get_reading())
@@ -191,6 +191,8 @@ print("rotation (deg) = ",rotation)
 print('pi = ',math.pi)
 print('bearing = ',bearing)
 print('phi = ',phi)
+print('x = ',x_total)
+print('y = ',y_total)
 
 #angle=imu.read_euler()[0]
 #angle_delta=direction_back-angle
@@ -208,11 +210,12 @@ print('phi = ',phi)
 #test process:
 #check each component of rotation:
 #pi
-gpg.turn_degrees(rotation)
+#gpg.turn_degrees(rotation)
+#gpg.turn_degrees(180)
 print("return distance (mm) = %8.2f" % (distance_back))
 #gpg.drive_cm(distance_back/10) too long
 #gpg.drive_cm(distance_back/100) too short 
-gpg.drive_cm(distance_back/44*2.54)  
+#gpg.drive_cm(distance_back/44*2.54)  
 gpg.stop()  
 # Save Out
 #with open('data.pkl', 'wb') as f:
