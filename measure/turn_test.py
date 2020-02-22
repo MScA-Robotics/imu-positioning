@@ -111,7 +111,8 @@ def get_position(right_prev,left_prev):
     ##print(res)
     return left_enc,right_enc,x,y
 
-
+bearing = imu.read_euler()[0]*math.pi/180
+print('bearing = ',bearing)
 
 i=0
 t1 = datetime.now()
@@ -120,7 +121,7 @@ right_prev=0
 left_prev=0
 x_total=0
 y_total=0
-while  i<100:
+while  i<50:
     # Execute
     ##print_reading()
     #data.append(get_reading())
@@ -182,9 +183,14 @@ print("return direction (deg CW from north) = %8.2f distance (mm) = %8.2f" % (di
 ## euler heading = bearing = yaw CW from north
 ## x_total is x position in mm where x direction is north
 ## y is west
-bearing = imu.read_euler()[0] 
-rotation = -((math.pi + bearing + np.arctan2(y_total,x_total))*180/math.pi)
-print("current yaw CW from north = %8.2f rotation = %8.2f" % (bearing, rotation))
+bearing = imu.read_euler()[0]*math.pi/180
+phi = np.arctan2(y_total,x_total)
+rotation = -((math.pi + bearing + phi)*180/math.pi)
+rotation = rotation % 360
+print("rotation (deg) = ",rotation)
+print('pi = ',math.pi)
+print('bearing = ',bearing)
+print('phi = ',phi)
 
 #angle=imu.read_euler()[0]
 #angle_delta=direction_back-angle
