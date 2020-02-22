@@ -1,0 +1,41 @@
+running bearing "east"
+x =  666.8568687012187
+y =  655.155430047093
+
+ignore above
+
+61 cm is a tile length
+
+we went 61 cm on tile roughly east along tile line
+got following output:
+
+try 1
+return direction (deg CW from north) =     1.48 distance (mm) =  1091.39
+rotation (deg) =  10.526700111989157
+pi =  3.141592653589793
+bearing =  1.4758940487177048
+phi =  1.4819730285478223
+x =  96.81367949655738
+y =  1087.0902231394334
+return distance (mm) =  1091.39
+
+try 2
+return direction (deg CW from north) =     1.43 distance (mm) =  1077.45
+rotation (deg) =  15.731851053394678
+pi =  3.141592653589793
+bearing =  1.4344424789828394
+phi =  1.4325775762918789
+x =  148.4496642158609
+y =  1067.1714877261177
+return distance (mm) =  1077.45
+
+try 3
+return direction (deg CW from north) =     1.45 distance (mm) =  1084.62
+rotation (deg) =  14.781138738592063
+pi =  3.141592653589793
+bearing =  1.4322608174178466
+phi =  1.451352297989434
+x =  129.24358408493356
+y =  1076.8923814661566
+return distance (mm) =  1084.62
+
