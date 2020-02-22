@@ -1,0 +1,99 @@
+tile length is 61
+running roughly cardinal directions along tile lines
+
+north
+
+try 1
+veered right
+return direction (deg CW from north) =     0.13 distance (mm) =  1140.61
+rotation (deg) =  160.62432940579257
+pi =  3.141592653589793
+bearing =  0.210530341021816
+phi =  0.1276389056289503
+x =  1131.33374120701
+y =  145.19153013993144
+return distance (mm) =  1140.61
+
+try 2
+veered right
+return direction (deg CW from north) =     0.07 distance (mm) =  1148.15
+rotation (deg) =  168.9205114088687
+pi =  3.141592653589793
+bearing =  0.12435470920459597
+phi =  0.06901884614779329
+x =  1145.4171807002324
+y =  79.18114124059801
+return distance (mm) =  1148.15
+
+east
+
+try 1
+veered right
+return direction (deg CW from north) =     1.52 distance (mm) =  1091.06
+rotation (deg) =  8.961204766777257
+pi =  3.141592653589793
+bearing =  1.4693490640227262
+phi =  1.5158410614413933
+x =  59.92937976308843
+y =  1089.4140296977337
+return distance (mm) =  1091.06
+
+try 2
+veered right
+return direction (deg CW from north) =     1.51 distance (mm) =  1092.86
+rotation (deg) =  9.497457170217388
+pi =  3.141592653589793
+bearing =  1.4638949101102436
+phi =  1.511935845292112
+x =  64.28937505202668
+y =  1090.9715914501621
+return distance (mm) =  1092.86
+
+south
+
+try 1
+veered left
+return direction (deg CW from north) =     2.99 distance (mm) =  1089.66
+rotation (deg) =  200.95161375169437
+pi =  3.141592653589793
+bearing =  2.9234264970905017
+phi =  2.9940841665158966
+x =  -1077.8277244833985
+y =  160.1519946895893
+return distance (mm) =  1089.66
+
+try 2
+veered left
+return direction (deg CW from north) =     2.99 distance (mm) =  1129.51
+rotation (deg) =  200.96823927413038
+pi =  3.141592653589793
+bearing =  2.928880651002984
+phi =  2.9883398424970413
+x =  -1116.2690422660185
+y =  172.4233563331174
+return distance (mm) =  1129.51
+
+west
+
+try 1
+went straight
+return direction (deg CW from north) =    -1.56 distance (mm) =  1147.78
+rotation (deg) =  358.7072293007936
+pi =  3.141592653589793
+bearing =  4.726569780557144
+phi =  -1.56241402179289
+x =  9.620902036681759
+y =  -1147.7364164221462
+return distance (mm) =  1147.78
+
+try 2
+veered right
+return direction (deg CW from north) =    -1.48 distance (mm) =  1130.52
+rotation (deg) =  347.3812066388638
+pi =  3.141592653589793
+bearing =  4.8421978435017685
+phi =  -1.4803656981313462
+x =  102.09414953824115
+y =  -1125.8983909256542
+return distance (mm) =  1130.52
+
