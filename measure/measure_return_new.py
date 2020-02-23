@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 
 from easygopigo3 import EasyGoPiGo3
 from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
-from drive.utils import print_reading, get_reading, return_home
-from drive.encoders import get_position
+from drive.utils import print_reading, get_reading
+from drive.control import get_position, drive_home, return_to_point
 
 import numpy as np
 import math as math
@@ -52,7 +52,7 @@ gpg.stop()
 # print direction_back, aka pointing vector direction CW deg angle from north
 # and distance back, aka pointing vector magnitude
 # print(imu.read_euler()[0])
-distance_back = math.sqrt(x_total**2+y_total**2)
+distance_back, direction_back = return_to_point((x_total, y_total, 0))
 direction_back = np.arctan2(y_total, x_total)
 print("return direction (deg CW from north) = %8.2f distance (mm) = %8.2f" % (direction_back, distance_back))
 

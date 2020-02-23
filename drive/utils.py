@@ -1,14 +1,8 @@
 from __future__ import print_function
 from __future__ import division
-
-import time
-import pickle
-from datetime import datetime, timedelta
-
+from datetime import datetime
 from easygopigo3 import EasyGoPiGo3
 from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
-
-import numpy as np
 
 
 # Initialize Sensors
@@ -69,13 +63,6 @@ def get_reading():
     }
 
     return res
-
-
-def return_home(rot, dist):
-    gpg.turn_degrees(rot)
-    gpg.drive_cm(dist/10)
-    # gpg.drive_cm(distance_back/44*2.54)
-    gpg.stop()
 
 
 if __name__ == "__main__":
