@@ -10,6 +10,7 @@ from drive.control import get_position, drive_home, return_to_point
 
 import numpy as np
 import math as math
+import multiprocessing
 
 # Setup Sensors
 imu = InertialMeasurementUnit(bus="GPG3_AD1")
@@ -24,6 +25,12 @@ right_prev = 0
 left_prev = 0
 x_total = 0
 y_total = 0
+
+position = Pose(x=0, y=0, theta=0)
+position.get_bearing()
+
+pos_array = [0, 0, 0]
+
 
 # Free Drive
 while i < 100:

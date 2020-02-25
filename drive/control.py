@@ -6,6 +6,21 @@ from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
 imu = InertialMeasurementUnit(bus="GPG3_AD1")
 
 
+class Demo:
+    def __init__(self, x=0, y=0, theta=0):
+        self.x = x
+        self.y = y
+        self.theta = theta
+
+    def get_pose(self):
+        return self.x, self.y, self.theta
+
+    def reset_position(self):
+        self.x = 0
+        self.y = 0
+
+    def update_from_position(self, r):
+
 def get_position(right_prev, left_prev):
     euler_x = imu.read_euler()[0]
 
