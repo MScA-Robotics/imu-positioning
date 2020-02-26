@@ -21,6 +21,8 @@ class Demo:
 
     def update_from_position(self, r):
 
+
+
 def get_position(right_prev, left_prev):
     euler_x = imu.read_euler()[0]
 

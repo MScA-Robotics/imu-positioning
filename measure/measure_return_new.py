@@ -1,5 +1,6 @@
 from __future__ import print_function
 from __future__ import division
+import multiprocessing
 import time
 from datetime import datetime, timedelta
 
@@ -7,15 +8,20 @@ from easygopigo3 import EasyGoPiGo3
 from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
 from drive.utils import print_reading, get_reading
 from drive.control import get_position, drive_home, return_to_point
-
+from drive.routes import drive_inst_1
 import numpy as np
 import math as math
-import multiprocessing
+
 
 # Setup Sensors
 imu = InertialMeasurementUnit(bus="GPG3_AD1")
 gpg = EasyGoPiGo3()
 gpg.reset_encoders()
+
+drive_process = multiprocessing.Process(
+    name='drive',
+    target=drive_inst_1
+)
 
 # Initialize Measurements for free drive
 i = 0
