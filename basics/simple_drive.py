@@ -1,7 +1,6 @@
 from easygopigo3 import EasyGoPiGo3
 import time
 
-
 gpg = EasyGoPiGo3()
 gpg.forward()
 gpg.stop()
@@ -18,7 +17,7 @@ time.sleep(3)
 gpg.stop()
 gpg.set_speed(10000)
 
-##gpg.drive_cm(50, blocking=False)
+# gpg.drive_cm(50, blocking=False)
 time.sleep(1)
 
 gpg.stop()

@@ -9,7 +9,6 @@
 # Python example program for the Dexter Industries IMU Sensor
 # git example is at:
 # https://github.com/DexterInd/DI_Sensors/blob/master/Python/Examples/IMUSensor.py
-
 from __future__ import print_function
 from __future__ import division
 
