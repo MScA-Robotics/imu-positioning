@@ -5,11 +5,14 @@ python3 -m measure.take_measurements
 """
 from __future__ import print_function
 from __future__ import division
+import multiprocessing
 import time
 import pickle
 import atexit
+import os
 from pprint import pprint
 from datetime import datetime, timedelta
+import csv
 
 from easygopigo3 import EasyGoPiGo3
 from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
@@ -18,13 +21,18 @@ from drive.routes import drive_inst_1, drive_inst_2
 
 # Setup Manual Inputs (HARD CODES)
 test_drive_instr = drive_inst_1
-file_out = 'test_229.pkl'
+drive_name = 'sample_drive_1'
+write_header = True
+file_out = 'test_229.csv'
 
 # Setup Sensors
-imu = InertialMeasurementUnit(bus="GPG3_AD1")
+# imu = InertialMeasurementUnit(bus="GPG3_AD1")
 gpg = EasyGoPiGo3()
 gpg.reset_encoders()
 atexit.register(gpg.stop)
+
+# Setup File
+
 
 # Setup Standard Drive
 drive_process = multiprocessing.Process(
@@ -38,7 +46,9 @@ drive_process.start()
 i = 0
 data = []
 while i < 100:
-    data.append(get_reading())
+    reading = get_reading()
+    reading['drive name'] = drive_name
+    data.append(reading)
     i += 1
     time.sleep(.10)
 
@@ -47,8 +57,14 @@ drive_process.join()
 pprint(data)
 
 output_file_name = os.path.join(os.getcwd(), 'offline', 'data', file_out)
-with open(output_file_name, 'ab') as f:
-    pickle.dump(data, f)
+keys = data[0].keys()
+    
+with open(output_file_name, 'a') as f:
+    dict_writer = csv.DictWriter(f, keys)
+    if write_header:
+        dict_writer.writeheader()
+    dict_writer.writerows(data)
+    # pickle.dump(data, f)
 
 # 'wb' for write bytes
 # 'ab' for append bytes

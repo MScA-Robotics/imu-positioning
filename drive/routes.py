@@ -1,3 +1,8 @@
+import multiprocessing
+from easygopigo3 import EasyGoPiGo3
+
+gpg = EasyGoPiGo3()
+
 
 def drive_inst_1():
     """Drive Instructions 1
