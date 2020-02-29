@@ -21,9 +21,9 @@ from drive.routes import drive_inst_1, drive_inst_2
 
 # Setup Manual Inputs (HARD CODES)
 test_drive_instr = drive_inst_1
-drive_name = 'sample_drive_1'
-write_header = True
-file_out = 'test_229.csv'
+drive_name = 'sample_drive_3'
+write_header = False
+file_out = 'drives_1_229.csv'
 
 # Setup Sensors
 # imu = InertialMeasurementUnit(bus="GPG3_AD1")
@@ -54,10 +54,17 @@ while i < 100:
 
 # Wrap up processes, print and save
 drive_process.join()
-pprint(data)
+# pprint(data)
+print('done')
 
 output_file_name = os.path.join(os.getcwd(), 'offline', 'data', file_out)
-keys = data[0].keys()
+# keys = data[0].keys()
+keys = ['drive name', 'time', 'left_enc', 'right_enc',
+        'euler_x', 'euler_y', 'euler_z',
+        'mag_x', 'mag_y', 'mag_z',
+        'accel_x', 'accel_y', 'accel_z',
+        'gyro_x','gyro_y', 'gyro_z',
+       ]
     
 with open(output_file_name, 'a') as f:
     dict_writer = csv.DictWriter(f, keys)
