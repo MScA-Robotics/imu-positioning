@@ -20,12 +20,12 @@ from drive.utils import get_reading
 
 gpg = EasyGoPiGo3()
 gpg.reset_encoders()
-atexit.register(gpg.stop())
+atexit.register(gpg.stop)
 
 
 def drive_instructions():
-    pro_name = multiprocessing.current_process().name
-    print("Starting Drive Process {}".format(pro_name))
+    process_name = multiprocessing.current_process().name
+    print("Starting Drive Process {}".format(process_name))
     gpg.drive_cm(10)
     gpg.turn_degrees(90)
     gpg.drive_cm(20)
@@ -38,12 +38,10 @@ drive_process = multiprocessing.Process(
     name='drive',
     target=drive_instructions
 )
-
-num = 5
+drive_process.start()
+num = 30
 while num > 0:
-    gpg.drive_cm(10)
-    time.sleep(.15)
-    gpg.turn_degrees(10)
+    time.sleep(.10)
     measurements = get_reading()
     # pprint(measurements)
     print("Bearing: {}".format(measurements.get('euler_x')))
