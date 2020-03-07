@@ -20,6 +20,7 @@ class Demo:
         self.y = 0
 
     def update_from_position(self, r):
+        pass
 
 
 
