@@ -42,11 +42,11 @@ def drive_inst_3():
     """
     pro_name = multiprocessing.current_process().name
     print("Starting Drive Process {}".format(pro_name))
-    gpg.drive_cm(125)
+    gpg.drive_cm(150)
     gpg.turn_degrees(-90)
     gpg.drive_cm(50)
     gpg.turn_degrees(-90)
-    gpg.drive_cm(125)
+    gpg.drive_cm(150)
     gpg.stop()
 
 
