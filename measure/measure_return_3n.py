@@ -18,11 +18,19 @@ import numpy as np
 
 
 # Setup Manual Inputs (HARD CODES)
-test_drive_instr = drive_inst_mini
+test_drive_instr = drive_inst_1
 attempt_return = False
 saving_data = False
 draw_path = True
 init_x, init_y = 0, 0  # For test path 2 use 250, 50
+
+# Path 1
+# drive_inst_1
+# init_x, init_y = 0, 0
+
+# Path 2
+# drive_inst_3
+# init_x, init_y = 250, 50 or 50, 250
 
 # Setup Sensors
 imu = InertialMeasurementUnit(bus="GPG3_AD1")
