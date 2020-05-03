@@ -63,8 +63,8 @@ keys = ['drive name', 'time', 'left_enc', 'right_enc',
         'euler_x', 'euler_y', 'euler_z',
         'mag_x', 'mag_y', 'mag_z',
         'accel_x', 'accel_y', 'accel_z',
-        'gyro_x','gyro_y', 'gyro_z',
-       ]
+        'gyro_x', 'gyro_y', 'gyro_z',
+        ]
     
 with open(output_file_name, 'a') as f:
     dict_writer = csv.DictWriter(f, keys)
@@ -72,6 +72,3 @@ with open(output_file_name, 'a') as f:
         dict_writer.writeheader()
     dict_writer.writerows(data)
     # pickle.dump(data, f)
-
-# 'wb' for write bytes
-# 'ab' for append bytes

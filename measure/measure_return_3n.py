@@ -9,7 +9,7 @@ from easygopigo3 import EasyGoPiGo3
 from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
 from drive.utils import print_reading, get_reading
 from drive.control import drive_home, return_to_point
-from drive.routes import drive_inst_1, drive_inst_2, drive_inst_3, drive_inst_mini
+from drive.routes import drive_inst_1, drive_inst_2, drive_inst_3, drive_mini_1
 # ## imports for plotting
 import math as math
 import matplotlib.pyplot as plt
@@ -44,24 +44,24 @@ drive_process = multiprocessing.Process(
 )
 
 
-def get_position(right_prev,left_prev,euler_x_prev,theta_prev):
+def get_position(right_prev, left_prev, euler_x_prev, theta_prev):
 
     euler = imu.read_euler()
-    euler_x=euler[0]
+    euler_x = euler[0]
 
     encoder = gpg.read_encoders()
     left_enc = encoder[0]
     right_enc = encoder[1]
-    lr_delta = left_enc-right_enc
-    y_delta = left_enc-left_prev
-    x_delta = right_enc-right_prev
-    lr_avg = (x_delta+y_delta)/2
-    if(abs(lr_delta)>2):
+    lr_delta = left_enc - right_enc
+    y_delta = left_enc - left_prev
+    x_delta = right_enc - right_prev
+    lr_avg = (x_delta + y_delta) / 2
+    if abs(lr_delta) > 2:
         
-        theta_delta=euler_x-euler_x_prev
+        theta_delta = euler_x - euler_x_prev
     else:
-        theta_delta=0
-    theta = theta_prev+theta_delta
+        theta_delta = 0
+    theta = theta_prev + theta_delta
     x = math.sin(theta*0.0174533) * lr_avg
     y = math.cos(theta*0.0174533) * lr_avg
     read_distance = 0
@@ -69,7 +69,7 @@ def get_position(right_prev,left_prev,euler_x_prev,theta_prev):
         "x": x,
         "y": y
     }
-    # #print(res)
+    # print(res)
     return left_enc, right_enc, x, y, res, euler_x, theta
 
 
@@ -100,8 +100,8 @@ while i < 100:
     theta_prev = theta
     right_prev = right_enc
     left_prev = left_enc
-    x_total = x_total+x
-    y_total = y_total+y
+    x_total = x_total + x
+    y_total = y_total + y
     # #print("x= %2.2f, y=%2.2f, dx= %2.2f, dy=%2.2f, euler==%2.2f  theta==%2.2f " % (x_total/44, y_total/44,x/44, y/44, euler_x,theta))
     print("x= %2.2f, y=%2.2f,  euler==%2.2f  theta==%2.2f " % (x_total/44, y_total/44, euler_x, theta))
     # #print(imu.read_euler()[0])

@@ -28,17 +28,13 @@ from datetime import datetime, timedelta
 
 from easygopigo3 import EasyGoPiGo3
 from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
-from di_sensors.distance_sensor import DistanceSensor
+
 
 import numpy as np
 import math as math
-# establish communication with the DistanceSensor
-ds = DistanceSensor()
 
-# set the sensor in fast-polling-mode
-ds.start_continuous()
 # Setup Sensors
-imu = InertialMeasurementUnit(bus = "GPG3_AD1")
+imu = InertialMeasurementUnit(bus="GPG3_AD1")
 gpg = EasyGoPiGo3()
 gpg.reset_encoders()
 
@@ -92,57 +88,44 @@ def get_reading():
     
     return res
 
-def get_position(right_prev,left_prev):
+
+def get_position(right_prev, left_prev):
 
     euler = imu.read_euler()
-    euler_x=euler[0]
+    euler_x = euler[0]
 
     encoder = gpg.read_encoders()
-    left_enc=encoder[0]
-    right_enc= encoder[1]
-    y_delta=left_enc-left_prev
-    x_delta=right_enc-right_prev
-    y=math.sin(euler_x*0.0174533)*y_delta
-    x=math.cos(euler_x*0.0174533)*x_delta
-    read_distance = ds.read_range_continuous()
-    res = {
-
-        "left_enc": left_enc,
-        "right_enc": right_enc,
-        "x": x,
-        "y": y,
-        "euler_x":euler_x,
-        "read_distance":read_distance
-        
-    }
-    ##print(res)
-    return left_enc,right_enc,x,y,res
+    left_enc = encoder[0]
+    right_enc = encoder[1]
+    y_delta = left_enc - left_prev
+    x_delta = right_enc - right_prev
+    y = math.sin(euler_x * 0.0174533) * y_delta
+    x = math.cos(euler_x * 0.0174533)*x_delta
+    return left_enc, right_enc, x, y
 
 
-
-i=0
+i = 0
 t1 = datetime.now()
 data = []
-right_prev=0
-left_prev=0
-x_total=0
-y_total=0
-while  i<100:
+right_prev = 0
+left_prev = 0
+x_total = 0
+y_total = 0
+while i < 100:
     # Execute
-    ##print_reading()
-    #data.append(get_reading())
+    # print_reading()
+    # data.append(get_reading())
     t2 = datetime.now()
-    left_enc,right_enc,x,y,res=get_position(right_prev,left_prev)
+    left_enc, right_enc, x, y = get_position(right_prev, left_prev)
     
-    right_prev=right_enc
-    left_prev=left_enc
-    x_total=x_total+x
-    y_total=y_total+y
-    print("x= %8.2f y=%8.2f" % (x_total/44, y_total/44))
+    right_prev = right_enc
+    left_prev = left_enc
+    x_total = x_total+x
+    y_total = y_total+y
+    print("x (mm) = %8.2f y (mm) = %8.2f" % (x_total, y_total))
     print(imu.read_euler()[0])
-    ##print("Duration: {}".format(t2 - t1))
+    # print("Duration: {}".format(t2 - t1))
     # print(timedelta(t2, t1))
-    data.append(res)
     
     # Prepare for next iteration
     i += 1
@@ -152,57 +135,67 @@ while  i<100:
 
 gpg.stop()
 
-##print(imu.read_euler()[0]) 
-distance_back=math.sqrt(x_total*x_total+y_total*y_total)
-##print(distance_back)
-
-#if x_total>0 and y_total>0: ### quadrant 1
+# if x_total>0 and y_total>0: ### quadrant 1
 #    direction_back=180+90-math.atan(x_total/y_total)*57.2958
-#elif x_total<0 and y_total>0:### quadrant 4
+# elif x_total<0 and y_total>0:### quadrant 4
 #    direction_back=180+90-math.atan(x_total/y_total)*57.2958
-#elif x_total<0 and y_total<0:### quadrant 3
+# elif x_total<0 and y_total<0:### quadrant 3
 #    direction_back=90-math.atan(x_total/y_total)*57.2958
-#else: ### quadrant 2
+# else: ### quadrant 2
 #    direction_back=90-math.atan(x_total/y_total)*57.2958
-##print(direction_back)
-#print("Back direction= %8.2f dist=%8.2f" % (direction_back, distance_back/44))
+# print(direction_back)
+# print("Back direction= %8.2f dist=%8.2f" % (direction_back, distance_back/44))
 
+# ## Try quarant 3 and 4
+# if x_total>0 and y_total>0: ### quadrant 1
+#    direction_back=180+90-math.atan(x_total/y_total)*57.2958
+# elif x_total<0 and y_total>0:### quadrant 4
+#    direction_back=180+90+math.atan(x_total/y_total)*57.2958
+# elif x_total<0 and y_total<0:### quadrant 3
+#    direction_back=90-math.atan(x_total/y_total)*57.2958
+# else: ### quadrant 2
+#    direction_back=90+math.atan(x_total/y_total)*57.2958
+# print(direction_back)
+# print("Back direction= %8.2f dist=%8.2f" % (direction_back, distance_back/44))
 
-## Try quarant 3 and 4
-if x_total>0 and y_total>0: ### quadrant 1
-    direction_back=180+90-math.atan(x_total/y_total)*57.2958
-elif x_total<0 and y_total>0:### quadrant 4
-    direction_back=180+90+math.atan(x_total/y_total)*57.2958
-elif x_total<0 and y_total<0:### quadrant 3
-    direction_back=90-math.atan(x_total/y_total)*57.2958
-else: ### quadrant 2
-    direction_back=90+math.atan(x_total/y_total)*57.2958
-##print(direction_back)
-print("Back direction= %8.2f dist=%8.2f" % (direction_back, distance_back/44))
+# print direction_back, aka pointing vector direction CW deg angle from north
+#  and distance back, aka pointing vector magnitude
+# print(imu.read_euler()[0])
+distance_back = math.sqrt(x_total**2 + y_total**2)
+direction_back = np.arctan2(y_total, x_total)
+print("return direction (deg CW from north) = %8.2f distance (mm) = %8.2f" % (direction_back, distance_back))
 
+# may need to deal with dividing by zero when x_total = 0
 
+# find rotation, the CW rotation needed to go from pointing vector to return vector
+# quadrant independent method
+# euler heading = bearing = yaw CW from north
+# x_total is x position in mm where x direction is north
+# y is west
+bearing = imu.read_euler()[0] * math.pi/180
+phi = np.arctan2(y_total, x_total)
+# math.pi, bearing, and phi in radians, rotation in deg
+rotation = -((math.pi + bearing + phi)*180/math.pi)
+rotation = rotation % 360
+print("current yaw CW from north = %8.2f rotation = %8.2f" % (bearing, rotation))
 
+# angle=imu.read_euler()[0]
+# angle_delta=direction_back-angle
+# print("current= %8.2f delta=%8.2f" % (angle, angle_delta))
 
-
-
-angle=imu.read_euler()[0]
-angle_delta=direction_back-angle
-print("current= %8.2f delta=%8.2f" % (angle, angle_delta))
-##while angle_delta>1:
-  ##  angle=imu.read_euler()[0]
-    ##angle_delta=direction_back-angle
-  ##  gpg.right()
-  ##  time.sleep(.1)
- ##   gpg.stop()
- ##   print("current= %8.2f delta=%8.2f" % (angle, angle_delta))
+# while angle_delta>1:
+#   angle=imu.read_euler()[0]
+#   angle_delta=direction_back-angle
+#   gpg.right()
+#   time.sleep(.1)
+#   gpg.stop()
+#   print("current= %8.2f delta=%8.2f" % (angle, angle_delta))
  
-gpg.turn_degrees(angle_delta)
-print("back inc= %8.2f back cm=%8.2f" % (distance_back/44, distance_back/44*2.54))
-gpg.drive_cm(distance_back/44*2.54)  
+gpg.turn_degrees(rotation)
+print("return distance (mm) = %8.2f" % distance_back)
+gpg.drive_cm(distance_back / 10)
+# gpg.drive_cm(distance_back/44*2.54)
 gpg.stop()  
 # Save Out
-#with open('data.pkl', 'wb') as f:
-    #pickle.dump(data, f)
-# Save Out
-with open('data.pkl', 'wb') as f:
-    pickle.dump(data, f)
+# with open('data.pkl', 'wb') as f:
+#    pickle.dump(data, f)

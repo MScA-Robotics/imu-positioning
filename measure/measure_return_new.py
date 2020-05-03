@@ -7,11 +7,10 @@ from datetime import datetime, timedelta
 from easygopigo3 import EasyGoPiGo3
 from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
 from drive.utils import print_reading, get_reading
-from drive.control import get_position, drive_home, return_to_point
-from drive.routes import drive_inst_1
+from drive.control import Pose, get_position, drive_home, return_to_point
+from drive.routes import drive_inst_1, drive_mini_2
 import numpy as np
 import math as math
-
 
 # Setup Sensors
 imu = InertialMeasurementUnit(bus="GPG3_AD1")
@@ -20,7 +19,7 @@ gpg.reset_encoders()
 
 drive_process = multiprocessing.Process(
     name='drive',
-    target=drive_inst_1
+    target=drive_mini_2
 )
 
 # Initialize Measurements for free drive
@@ -33,12 +32,10 @@ x_total = 0
 y_total = 0
 
 position = Pose(x=0, y=0, theta=0)
-position.get_bearing()
 
-pos_array = [0, 0, 0]
+# Start Driving - For free drive comment out drive_process
+drive_process.start()
 
-
-# Free Drive
 while i < 100:
     # Execute
     # print_reading()
@@ -96,7 +93,7 @@ print("current yaw CW from north = %8.2f rotation = %8.2f" % (bearing, rotation)
 #     print("current= %8.2f delta=%8.2f" % (angle, angle_delta))
 
 print("return distance (mm) = %8.2f" % distance_back)
-return_home(rotation, distance_back)
+drive_home(rotation, distance_back)
 
 # Save Out
 # with open('data.pkl', 'wb') as f:
