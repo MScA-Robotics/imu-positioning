@@ -1,3 +1,4 @@
+import time
 import multiprocessing
 from easygopigo3 import EasyGoPiGo3
 
@@ -61,6 +62,7 @@ def drive_mini_1():
     for _ in range(4):
         gpg.drive_cm(10)
         gpg.turn_degrees(45)
+    gpg.drive_cm(10)
     gpg.stop()
 
 
@@ -75,4 +77,18 @@ def drive_mini_2():
     gpg.drive_cm(15)
     gpg.turn_degrees(45)
     gpg.drive_cm(15)
+    gpg.stop()
+
+
+def drive_pause_1():
+    """Drive Instructions with pause for rotation
+
+    Drive 30cm with a 3 second pause then another 30 cm
+    :return: None
+    """
+    process_name = multiprocessing.current_process().name
+    print("Starting Drive Process {}".format(process_name))
+    gpg.drive_cm(30)
+    time.sleep(3)
+    gpg.drive_cm(30)
     gpg.stop()

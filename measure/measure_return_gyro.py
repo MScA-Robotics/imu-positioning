@@ -8,22 +8,22 @@ from __future__ import division
 import multiprocessing
 import time
 import atexit
+import math
 from datetime import datetime, timedelta
 
 from easygopigo3 import EasyGoPiGo3
 from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
 from drive.utils import print_reading, get_reading
 from drive.control import drive_home, return_to_point
-from drive.routes import drive_inst_1, drive_inst_2, drive_inst_3, drive_mini_1
-# ## imports for plotting
-import math as math
-import matplotlib.pyplot as plt
-import pandas as pd 
-import numpy as np
+from drive.routes import drive_inst_1, drive_inst_2, drive_inst_3, drive_mini_1, drive_pause_1
 
+# ## imports for plotting
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd 
 
 # Setup Manual Inputs (HARD CODES)
-test_drive_instr = drive_mini_1
+test_drive_instr = drive_pause_1
 attempt_return = False
 saving_data = False
 draw_path = True
@@ -55,14 +55,20 @@ def update_position(left_prev, right_prev, theta_prev, time_prev):
     # Update Encoders
     left_delta = new_reading.get('left_enc') - left_prev
     right_delta = new_reading.get('right_enc') - right_prev
-    lr_avg = (left_delta + right_delta) / 2
+    
+    # Scale factor to go from encoder to centimeter - 
+    scale = 0.0577
+    
+    # Distance traveled in scaled units
+    lr_avg = (left_delta + right_delta) / 2 * scale
+    
 
     # Update theta based upon gyroscope
     delta_time = (new_reading.get('time') - time_prev).total_seconds()
-    theta = theta_prev + new_reading.get('gyro_y') * delta_time
+    theta = theta_prev - new_reading.get('gyro_y') * delta_time
 
-    delta_x = math.sin(theta*0.0174533) * lr_avg
-    delta_y = math.cos(theta*0.0174533) * lr_avg
+    delta_x = math.sin(theta * 0.0174533) * lr_avg
+    delta_y = math.cos(theta * 0.0174533) * lr_avg
     return new_reading.get('left_enc'), new_reading.get('right_enc'), delta_x, delta_y, theta, new_reading.get('time')
 
 
