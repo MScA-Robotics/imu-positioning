@@ -49,7 +49,7 @@ drive_process = multiprocessing.Process(
 )
 
 
-def update_position(right_prev, left_prev, theta_prev, time_prev):
+def update_position(left_prev, right_prev, theta_prev, time_prev):
     new_reading = get_reading()
 
     # Update Encoders
@@ -63,14 +63,14 @@ def update_position(right_prev, left_prev, theta_prev, time_prev):
 
     delta_x = math.sin(theta*0.0174533) * lr_avg
     delta_y = math.cos(theta*0.0174533) * lr_avg
-    return left_enc, right_enc, delta_x, delta_y, theta, new_reading.get('time')
+    return new_reading.get('left_enc'), new_reading.get('right_enc'), delta_x, delta_y, theta, new_reading.get('time')
 
 
 # Initialize Measurements for drive
 i = 0
 data = []
-right_prev = 0
 left_prev = 0
+right_prev = 0
 x_total = init_x
 y_total = init_y
 theta = get_reading().get('euler_x')
@@ -81,11 +81,11 @@ drive_process.start()
 
 # Measure while driving loop
 while i < 100:
-    left_enc, right_enc, delta_x, delta_y, theta, curr_time = update_position(right_prev, left_prev, theta, curr_time)
+    left_prev, right_prev, delta_x, delta_y, theta, curr_time = update_position(left_prev, right_prev, theta, curr_time)
     x_total = x_total + delta_x
     y_total = y_total + delta_y
     # print("x= %2.2f, y=%2.2f, dx= %2.2f, dy=%2.2f, euler==%2.2f  theta==%2.2f " % (x_total/44, y_total/44,x/44, y/44, euler_x,theta))
-    print("x= %2.2f, y=%2.2f,  euler==%2.2f  theta==%2.2f " % (x_total/44, y_total/44, euler_x, theta))
+    print("x= %2.2f, y=%2.2f, theta==%2.2f " % (x_total/44, y_total/44, theta))
     data.append({
         "t": str(curr_time),
         "x": x_total,
