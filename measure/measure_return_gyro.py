@@ -2,6 +2,8 @@
 
 This contains all of measure_return_3n as of 5/9/20 with changes that
 incorporate angular velocity from the gyroscope
+
+Run on linux  as 'python3 -m measure.measure_return_gyro'
 """
 from __future__ import print_function
 from __future__ import division
@@ -61,7 +63,8 @@ def update_position(left_prev, right_prev, theta_prev, time_prev):
     
     # Distance traveled in scaled units
     lr_avg = (left_delta + right_delta) / 2 * scale
-    
+    # translation in a straight line (distance in cm - r) is lr_avg
+    # translational_vel = lr_avg / delta_time * delta_theta
 
     # Update theta based upon gyroscope
     delta_time = (new_reading.get('time') - time_prev).total_seconds()
@@ -139,5 +142,3 @@ if saving_data:
     # Save Out
     with open('data.pkl', 'wb') as f:
         pickle.dump(data, f)
-
-# run file python3 -m measure.measure_return_3

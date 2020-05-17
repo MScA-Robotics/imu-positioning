@@ -35,7 +35,7 @@ class Pose:
     def return_to_point(self, return_loc):
         dx, dy = return_loc[0] - self.x, return_loc[1] - self.y
         distance_back = np.sqrt(dx ** 2 + dy ** 2)
-        print(np.arctan2(dy,dx))
+        print(np.arctan2(dy, dx))
         direction_back = np.arctan2(dy, dx) + self.theta
         return distance_back, direction_back
 
