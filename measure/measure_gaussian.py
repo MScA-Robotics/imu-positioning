@@ -32,7 +32,7 @@ import numpy as np
 import pandas as pd
 
 # Setup Manual Inputs (HARD CODES)
-test_drive_instr = routes.drive_mini_2
+test_drive_instr = routes.drive_mini_1
 attempt_return = False
 saving_data = False
 draw_path = True
@@ -61,7 +61,7 @@ drive_process = multiprocessing.Process(
 def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
     theta_prev = mu_prev[2, 0]
     # Initialize data needed
-    new_reading = get_reading()
+    new_reading = get_reading(read_mag=False)
     delta_time = (new_reading.get('time') - time_prev).total_seconds()
 
     # Get 'r' from encoders and scale to centimeters
@@ -102,8 +102,8 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
     delta_x = np.sin(theta_new * 0.0174533) * r
     delta_y = np.cos(theta_new * 0.0174533) * r
     mu_new = mu_prev + np.array([
-        [vel_r * (np.sin(theta_new * np.pi / 180) - np.sin(theta_prev * np.pi / 180))],
-        [vel_r * (np.cos(theta_prev * np.pi / 180) - np.cos(theta_new * np.pi / 180))],
+        [vel_r * 180 / np.pi * (np.sin(theta_new * np.pi / 180) - np.sin(theta_prev * np.pi / 180))],
+        [vel_r * 180 / np.pi * (np.cos(theta_prev * np.pi / 180) - np.cos(theta_new * np.pi / 180))],
         [omega * delta_time]
     ])
     return new_reading.get('left_enc'), new_reading.get('right_enc'), mu_new, Sigma, new_reading.get('time')
@@ -139,7 +139,7 @@ while i < 100:
 
     # Prepare for next iteration
     i += 1
-    time.sleep(.1)
+    time.sleep(.0625)
 
 print(data[1])
 
