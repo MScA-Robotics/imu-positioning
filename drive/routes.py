@@ -74,8 +74,11 @@ def drive_mini_2():
     """
     process_name = multiprocessing.current_process().name
     print("Starting Drive Process {}".format(process_name))
+    time.sleep(1)
     gpg.drive_cm(15)
+    time.sleep(1)
     gpg.turn_degrees(45)
+    time.sleep(1)
     gpg.drive_cm(15)
     gpg.stop()
 

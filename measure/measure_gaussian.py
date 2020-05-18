@@ -22,7 +22,9 @@ from easygopigo3 import EasyGoPiGo3
 from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
 from drive.utils import print_reading, get_reading
 from drive.control import drive_home, return_to_point
-from drive.routes import drive_inst_1, drive_inst_2, drive_inst_3, drive_mini_1, drive_pause_1
+import drive.routes as routes
+# some route names:
+# drive_inst_1, drive_inst_2, drive_inst_3, drive_mini_1, drive_mini_2 drive_pause_1
 
 # ## imports for plotting
 import matplotlib.pyplot as plt
@@ -30,7 +32,7 @@ import numpy as np
 import pandas as pd
 
 # Setup Manual Inputs (HARD CODES)
-test_drive_instr = drive_pause_1
+test_drive_instr = routes.drive_mini_2
 attempt_return = False
 saving_data = False
 draw_path = True
@@ -56,8 +58,8 @@ drive_process = multiprocessing.Process(
 )
 
 
-def update_position(left_prev, right_prev, nu_prev, cov, time_prev):
-    theta_prev = nu_prev[2]
+def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
+    theta_prev = mu_prev[2, 0]
     # Initialize data needed
     new_reading = get_reading()
     delta_time = (new_reading.get('time') - time_prev).total_seconds()
@@ -72,7 +74,7 @@ def update_position(left_prev, right_prev, nu_prev, cov, time_prev):
     # Update theta based upon gyroscope
     omega = new_reading.get('gyro_y')
     theta_new = theta_prev - omega * delta_time
-    vel_r = nu / omega
+    vel_r = nu / omega if np.abs(omega) > 10e-4 else nu / 10e-4
 
     G_t = np.array([
         [1, 0, vel_r * (np.cos(theta_new) - np.cos(theta_prev))],
@@ -99,12 +101,12 @@ def update_position(left_prev, right_prev, nu_prev, cov, time_prev):
 
     delta_x = np.sin(theta_new * 0.0174533) * r
     delta_y = np.cos(theta_new * 0.0174533) * r
-    nu_new = nu_prev + np.array([
-        [vel_r * (np.sin(theta_new) - np.sin(theta_prev))],
-        [vel_r * (np.cos(theta_prev) - np.cos(theta_new))],
+    mu_new = mu_prev + np.array([
+        [vel_r * (np.sin(theta_new * np.pi / 180) - np.sin(theta_prev * np.pi / 180))],
+        [vel_r * (np.cos(theta_prev * np.pi / 180) - np.cos(theta_new * np.pi / 180))],
         [omega * delta_time]
     ])
-    return new_reading.get('left_enc'), new_reading.get('right_enc'), nu_new, Sigma, new_reading.get('time')
+    return new_reading.get('left_enc'), new_reading.get('right_enc'), mu_new, Sigma, new_reading.get('time')
 
 
 # Initialize Measurements for drive
