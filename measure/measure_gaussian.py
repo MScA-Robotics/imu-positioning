@@ -68,29 +68,32 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
     scale = 0.0577
     left_delta = new_reading.get('left_enc') - left_prev
     right_delta = new_reading.get('right_enc') - right_prev
-    r = (left_delta + right_delta) / 2 * scale
-    nu = r / delta_time
+    # scale * average encoder advancement / time_elapsed
+    nu = scale * (left_delta + right_delta) / 2 / delta_time
 
     # Update theta based upon gyroscope
     omega = new_reading.get('gyro_y')
     theta_new = theta_prev - omega * delta_time
-    vel_r = nu / omega if np.abs(omega) > 10e-4 else nu / 10e-4
+    r = nu / (omega * np.pi / 180) if np.abs(omega) > 10e-4 else nu / 10e-4
 
+    # noinspection PyPep8Naming
     G_t = np.array([
-        [1, 0, vel_r * (np.cos(theta_new) - np.cos(theta_prev))],
-        [0, 1, vel_r * (np.sin(theta_new) - np.sin(theta_prev))],
+        [1, 0, r * (np.cos(theta_new) - np.cos(theta_prev))],
+        [0, 1, r * (np.sin(theta_new) - np.sin(theta_prev))],
         [0, 0, 1]
     ])
 
+    # noinspection PyPep8Naming
     V_t = np.array([
         [(-np.sin(theta_prev) + np.sin(theta_new)) / omega,
-         nu * (np.sin(theta_prev) - np.sin(theta_new)) / omega**2 + (vel_r * np.cos(theta_new) * delta_time)],
+         nu * (np.sin(theta_prev) - np.sin(theta_new)) / omega**2 + (r * np.cos(theta_new) * delta_time)],
         [(np.cos(theta_prev) - np.cos(theta_new)) / omega,
-         -nu * (np.cos(theta_prev) - np.cos(theta_new)) / omega**2 + (vel_r * np.sin(theta_new) * delta_time)],
+         -nu * (np.cos(theta_prev) - np.cos(theta_new)) / omega**2 + (r * np.sin(theta_new) * delta_time)],
         [0, delta_time]
     ])
 
     # What to plugin to alpha 1-4?
+    # noinspection PyPep8Naming
     M_t = np.array([
         [nu**2 + omega**2, 0],
         [0, nu**2 + omega**2]
@@ -99,11 +102,9 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
     # noinspection PyPep8Naming
     Sigma = G_t.dot(cov).dot(G_t.T) + V_t.dot(M_t).dot(V_t.T)
 
-    delta_x = np.sin(theta_new * 0.0174533) * r
-    delta_y = np.cos(theta_new * 0.0174533) * r
     mu_new = mu_prev + np.array([
-        [vel_r * 180 / np.pi * (np.sin(theta_new * np.pi / 180) - np.sin(theta_prev * np.pi / 180))],
-        [vel_r * 180 / np.pi * (np.cos(theta_prev * np.pi / 180) - np.cos(theta_new * np.pi / 180))],
+        [r * (np.sin(theta_new * np.pi / 180) - np.sin(theta_prev * np.pi / 180))],
+        [r * (np.cos(theta_prev * np.pi / 180) - np.cos(theta_new * np.pi / 180))],
         [omega * delta_time]
     ])
     return new_reading.get('left_enc'), new_reading.get('right_enc'), mu_new, Sigma, new_reading.get('time')
