@@ -16,6 +16,7 @@ from __future__ import division
 import multiprocessing
 import time
 import atexit
+from pprint import pprint
 from datetime import datetime, timedelta
 
 from easygopigo3 import EasyGoPiGo3
@@ -74,7 +75,7 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
     # Update theta based upon gyroscope
     omega = new_reading.get('gyro_y') * np.pi / 180
     theta_new = theta_prev - omega * delta_time
-    r = nu / omega if np.abs(omega) > 10e-4 else nu / 10e-4
+    r = nu / omega if np.abs(omega) > 10e-6 else nu / 10e-6
 
     # noinspection PyPep8Naming
     G_t = np.array([
@@ -94,9 +95,11 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
 
     # What to plugin to alpha 1-4?
     # noinspection PyPep8Naming
+    M_t_1_1 = 0.01 * nu**2 + 0.015 * omega**2 if 0.01 * nu**2 + 0.015 * omega**2 > 10e-6 else 10e-6
+    M_t_2_2 = 0.005 * nu**2 + 0.02 * omega**2 if 0.005 * nu**2 + 0.02 * omega**2 > 10e-6 else 10e-6
     M_t = np.array([
-        [nu**2 + omega**2, 0],
-        [0, nu**2 + omega**2]
+        [M_t_1_1, 0],
+        [0 , M_t_2_2]
     ])
 
     # noinspection PyPep8Naming
@@ -107,6 +110,14 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
         [r * (np.cos(theta_prev) - np.cos(theta_new))],
         [omega * delta_time]
     ])
+    if i % 10 == 0:
+        print(mu_prev)
+        print(mu_new)
+        pprint(M_t)
+        print(G_t)
+        pprint(V_t)
+        pprint(Sigma)
+    
     return new_reading.get('left_enc'), new_reading.get('right_enc'), mu_new, Sigma, new_reading.get('time')
 
 
@@ -118,7 +129,7 @@ pose = np.array([
     [init_y],
     [get_reading().get('euler_x') * np.pi / 180]
 ])
-cov = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+cov = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
 left_prev = 0
 right_prev = 0
 curr_time = datetime.now()
@@ -131,27 +142,24 @@ while i < 100:
     # mu is 3 x 1 pose
     left_prev, right_prev, pose, cov, curr_time = update_position(left_prev, right_prev, pose, cov, curr_time)
     # print("x= %2.2f, y=%2.2f, theta==%2.2f " % (pose[0], pose[1], pose[2]))
-    print(pose)
+    # print(pose)
     data.append({
         "t": str(curr_time),
         "x": pose[0],
         "y": pose[1],
+        "theta": pose[2],
+        "cov" : cov,
     })
 
     # Prepare for next iteration
     i += 1
     time.sleep(.0625)
 
-print(data[1])
-
 print("printing path")
 plt.style.use('seaborn-whitegrid')
 df = pd.DataFrame(data)
-# 'lr_delta': -1, 'euler_x': 240.4375, 'left_enc': 2585, 'y': 4.216956575971679, 'theta': -32.5, 'x_delta': 4,
-#  'right_enc': 2586, 'x': -2.6864990668841138, 'y_delta': 6
-# print(df[1])
 print(df.head())
-# df.columns = ['lr_delta','euler_x',"left_enc","y",'theta','x_delta','right_enc','x','y_delta']
+
 fig = plt.figure()
 plt.plot(df.x, df.y, 'o', color='black')
 fig.savefig('plot.png')
@@ -169,9 +177,6 @@ if attempt_return:
     print("back inc= %8.2f back cm=%8.2f" % (distance_back / 44, distance_back / 44 * 2.54))
     # ##gpg.drive_cm(distance_back/44*2.54)
     gpg.stop()
-    # Save Out
-    # with open('data.pkl', 'wb') as f:
-    # pickle.dump(data, f)
 
 if saving_data:
     # Save Out
