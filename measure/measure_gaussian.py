@@ -72,9 +72,9 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
     nu = scale * (left_delta + right_delta) / 2 / delta_time
 
     # Update theta based upon gyroscope
-    omega = new_reading.get('gyro_y')
+    omega = new_reading.get('gyro_y') * np.pi / 180
     theta_new = theta_prev - omega * delta_time
-    r = nu / (omega * np.pi / 180) if np.abs(omega) > 10e-4 else nu / 10e-4
+    r = nu / omega if np.abs(omega) > 10e-4 else nu / 10e-4
 
     # noinspection PyPep8Naming
     G_t = np.array([
@@ -103,8 +103,8 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
     Sigma = G_t.dot(cov).dot(G_t.T) + V_t.dot(M_t).dot(V_t.T)
 
     mu_new = mu_prev + np.array([
-        [r * (np.sin(theta_new * np.pi / 180) - np.sin(theta_prev * np.pi / 180))],
-        [r * (np.cos(theta_prev * np.pi / 180) - np.cos(theta_new * np.pi / 180))],
+        [r * (np.sin(theta_new) - np.sin(theta_prev))],
+        [r * (np.cos(theta_prev) - np.cos(theta_new))],
         [omega * delta_time]
     ])
     return new_reading.get('left_enc'), new_reading.get('right_enc'), mu_new, Sigma, new_reading.get('time')
@@ -116,7 +116,7 @@ data = []
 pose = np.array([
     [init_x],
     [init_y],
-    [get_reading().get('euler_x')]
+    [get_reading().get('euler_x') * np.pi / 180]
 ])
 cov = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 left_prev = 0
