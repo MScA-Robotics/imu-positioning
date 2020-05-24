@@ -13,6 +13,7 @@ Run on linux  as 'python3 -m measure.measure_gaussian'
 """
 from __future__ import print_function
 from __future__ import division
+import sys
 import multiprocessing
 import time
 import atexit
@@ -31,6 +32,8 @@ import drive.routes as routes
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
+np.seterr(all='raise')
 
 # Setup Manual Inputs (HARD CODES)
 test_drive_instr = routes.drive_mini_1
@@ -74,6 +77,7 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
 
     # Update theta based upon gyroscope
     omega = new_reading.get('gyro_y') * np.pi / 180
+    vt_omega = omega if np.abs(omega) > 10e-8 else 10e-8
     theta_new = theta_prev - omega * delta_time
     r = nu / omega if np.abs(omega) > 10e-6 else nu / 10e-6
 
@@ -86,24 +90,32 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
 
     # noinspection PyPep8Naming
     V_t = np.array([
-        [(-np.sin(theta_prev) + np.sin(theta_new)) / omega,
-         nu * (np.sin(theta_prev) - np.sin(theta_new)) / omega**2 + (r * np.cos(theta_new) * delta_time)],
-        [(np.cos(theta_prev) - np.cos(theta_new)) / omega,
-         -nu * (np.cos(theta_prev) - np.cos(theta_new)) / omega**2 + (r * np.sin(theta_new) * delta_time)],
+        [(-np.sin(theta_prev) + np.sin(theta_new)) / vt_omega,
+         nu * (np.sin(theta_prev) - np.sin(theta_new)) / vt_omega**2 + (r * np.cos(theta_new) * delta_time)],
+        [(np.cos(theta_prev) - np.cos(theta_new)) / vt_omega,
+         -nu * (np.cos(theta_prev) - np.cos(theta_new)) / vt_omega**2 + (r * np.sin(theta_new) * delta_time)],
         [0, delta_time]
     ])
-
+    
     # What to plugin to alpha 1-4?
     # noinspection PyPep8Naming
-    M_t_1_1 = 0.01 * nu**2 + 0.015 * omega**2 if 0.01 * nu**2 + 0.015 * omega**2 > 10e-6 else 10e-6
-    M_t_2_2 = 0.005 * nu**2 + 0.02 * omega**2 if 0.005 * nu**2 + 0.02 * omega**2 > 10e-6 else 10e-6
+    alpha_1, alpha_2, alpha_3, alpha_4 = 10e-7, 15e-7, 5e-7, 20e-7
+    M_t_1_1 = alpha_1 * nu**2 + alpha_2 * omega**2
+    M_t_2_2 = alpha_3 * nu**2 + alpha_4 * omega**2
     M_t = np.array([
         [M_t_1_1, 0],
         [0 , M_t_2_2]
     ])
 
     # noinspection PyPep8Naming
-    Sigma = G_t.dot(cov).dot(G_t.T) + V_t.dot(M_t).dot(V_t.T)
+    try:
+        Sigma = G_t.dot(cov).dot(G_t.T) + V_t.dot(M_t).dot(V_t.T)
+    except:
+        Sigma = G_t.dot(cov).dot(G_t.T)
+        print("Unexpected error:", sys.exc_info()[0])
+        print(vt_omega)
+        print(theta_prev)
+        print(theta_new)
 
     mu_new = mu_prev + np.array([
         [r * (np.sin(theta_new) - np.sin(theta_prev))],
@@ -113,6 +125,8 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
     if i % 10 == 0:
         print(mu_prev)
         print(mu_new)
+        print(nu)
+        print(omega)
         pprint(M_t)
         print(G_t)
         pprint(V_t)
