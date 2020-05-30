@@ -17,13 +17,13 @@ import csv
 from easygopigo3 import EasyGoPiGo3
 from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
 from drive.utils import get_reading
-from drive.routes import drive_inst_1, drive_inst_2
+import drive.routes as routes
 
 # Setup Manual Inputs (HARD CODES)
-test_drive_instr = drive_inst_1
+test_drive_instr = routes.turn_series
 drive_name = 'sample_drive_3'
 write_header = False
-file_out = 'drives_1_229.csv'
+file_out = 'turns_5_30.csv'
 
 # Setup Sensors
 # imu = InertialMeasurementUnit(bus="GPG3_AD1")
@@ -45,16 +45,16 @@ drive_process.start()
 
 i = 0
 data = []
-while i < 100:
+while i < 15:
     reading = get_reading()
     reading['drive name'] = drive_name
     data.append(reading)
     i += 1
-    time.sleep(.10)
+    time.sleep(2)
 
 # Wrap up processes, print and save
 drive_process.join()
-# pprint(data)
+pprint(data)
 print('done')
 
 output_file_name = os.path.join(os.getcwd(), 'offline', 'data', file_out)

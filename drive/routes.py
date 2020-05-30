@@ -95,3 +95,29 @@ def drive_pause_1():
     time.sleep(3)
     gpg.drive_cm(30)
     gpg.stop()
+
+
+def turn_series():
+    """Test a series of rotations for tuning integration of encoders
+
+    Make a series of turns that eventually go back to a common center
+    :return: None
+    """
+    process_name = multiprocessing.current_process().name
+    print("Starting Drive Process {}".format(process_name))
+    gpg.turn_degrees(5)
+    time.sleep(1.5)
+    gpg.turn_degrees(10)
+    time.sleep(1.5)
+    gpg.turn_degrees(30)
+    time.sleep(1.5)
+    gpg.turn_degrees(45)
+    time.sleep(1.5)
+    gpg.turn_degrees(90)
+    time.sleep(1.5)
+    gpg.turn_degrees(-30)
+    time.sleep(1.5)
+    gpg.turn_degrees(-60)
+    time.sleep(1.5)
+    gpg.turn_degrees(-90)
+    gpg.stop()

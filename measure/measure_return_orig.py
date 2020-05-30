@@ -2,36 +2,16 @@
 
 Make continuous readings from the sensors and begin
 a take measurements function.
-
-We Believe the Following:
-Magnet x: 
-Magnet y:
-Magnet z:
-Euler Heading: Dir w/ 0 being North 90 East, 180 South, 270 West
-Euler Roll:
-Euler Pitch: Angle up 
-Accel x:
-Accel y:
-Accel z:
-Euler x:
-Euler y:
-Euler z:
-Thermometer: Temperature in Celcius
-Left Encoder: Odometer of left wheel
-Right Encoder: Odometer of right wheel
 """
 from __future__ import print_function
 from __future__ import division
 import time
 import pickle
+import math as math
+import numpy as np
 from datetime import datetime, timedelta
-
 from easygopigo3 import EasyGoPiGo3
 from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
-
-
-import numpy as np
-import math as math
 
 # Setup Sensors
 imu = InertialMeasurementUnit(bus="GPG3_AD1")

@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 
 from easygopigo3 import EasyGoPiGo3
 from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
-from drive.utils import print_reading, get_reading
+from drive.utils import get_reading
 from drive.control import drive_home, return_to_point
 import drive.routes as routes
 # some route names:

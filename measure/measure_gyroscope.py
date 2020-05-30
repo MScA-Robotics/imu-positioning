@@ -1,24 +1,31 @@
+"""Measure Return Updated to use the Gyroscope
+
+This contains all of measure_return_3n as of 5/9/20 with changes that
+incorporate angular velocity from the gyroscope
+
+Run on linux  as 'python3 -m measure.measure_gyroscope'
+"""
 from __future__ import print_function
 from __future__ import division
 import multiprocessing
 import time
 import atexit
+import math
 from datetime import datetime, timedelta
 
 from easygopigo3 import EasyGoPiGo3
 from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
-from drive.utils import print_reading, get_reading
+from drive.utils import get_reading
 from drive.control import drive_home, return_to_point
-from drive.routes import drive_inst_1, drive_inst_2, drive_inst_3, drive_mini_1
-# ## imports for plotting
-import math as math
-import matplotlib.pyplot as plt
-import pandas as pd 
-import numpy as np
+import drive.routes as routes
 
+# ## imports for plotting
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd 
 
 # Setup Manual Inputs (HARD CODES)
-test_drive_instr = drive_inst_1
+test_drive_instr = routes.drive_pause_1
 attempt_return = False
 saving_data = False
 draw_path = True
@@ -44,79 +51,58 @@ drive_process = multiprocessing.Process(
 )
 
 
-def get_position(right_prev, left_prev, euler_x_prev, theta_prev):
+def update_position(left_prev, right_prev, theta_prev, time_prev):
+    new_reading = get_reading()
 
-    euler = imu.read_euler()
-    euler_x = euler[0]
+    # Update Encoders
+    left_delta = new_reading.get('left_enc') - left_prev
+    right_delta = new_reading.get('right_enc') - right_prev
+    
+    # Scale factor to go from encoder to centimeter - 
+    scale = 0.0577
+    
+    # Distance traveled in scaled units
+    lr_avg = (left_delta + right_delta) / 2 * scale
+    # translation in a straight line (distance in cm - r) is lr_avg
+    # translational_vel = lr_avg / delta_time * delta_theta
 
-    encoder = gpg.read_encoders()
-    left_enc = encoder[0]
-    right_enc = encoder[1]
-    lr_delta = left_enc - right_enc
-    y_delta = left_enc - left_prev
-    x_delta = right_enc - right_prev
-    lr_avg = (x_delta + y_delta) / 2
-    if abs(lr_delta) > 2:
-        
-        theta_delta = euler_x - euler_x_prev
-    else:
-        theta_delta = 0
-    theta = theta_prev + theta_delta
-    x = math.sin(theta*0.0174533) * lr_avg
-    y = math.cos(theta*0.0174533) * lr_avg
-    read_distance = 0
-    res = {
-        "x": x,
-        "y": y
-    }
-    # print(res)
-    return left_enc, right_enc, x, y, res, euler_x, theta
+    # Update theta based upon gyroscope
+    delta_time = (new_reading.get('time') - time_prev).total_seconds()
+    theta = theta_prev - new_reading.get('gyro_y') * delta_time
+
+    delta_x = math.sin(theta * 0.0174533) * lr_avg
+    delta_y = math.cos(theta * 0.0174533) * lr_avg
+    return new_reading.get('left_enc'), new_reading.get('right_enc'), delta_x, delta_y, theta, new_reading.get('time')
 
 
 # Initialize Measurements for drive
 i = 0
-t1 = datetime.now()
 data = []
-right_prev = 0
 left_prev = 0
+right_prev = 0
 x_total = init_x
 y_total = init_y
-euler = imu.read_euler()
-euler_x_prev = euler[0]
-theta_prev = 0
+theta = get_reading().get('euler_x')
+curr_time = datetime.now()
 
 # Start Driving
 drive_process.start()
 
 # Measure while driving loop
 while i < 100:
-    # Execute
-    # #print_reading()
-    # data.append(get_reading())
-    
-    t2 = datetime.now()
-    left_enc, right_enc, x, y, res, euler_x, theta = get_position(right_prev, left_prev, euler_x_prev, theta_prev)
-    euler_x_prev = euler_x
-    theta_prev = theta
-    right_prev = right_enc
-    left_prev = left_enc
-    x_total = x_total + x
-    y_total = y_total + y
-    # #print("x= %2.2f, y=%2.2f, dx= %2.2f, dy=%2.2f, euler==%2.2f  theta==%2.2f " % (x_total/44, y_total/44,x/44, y/44, euler_x,theta))
-    print("x= %2.2f, y=%2.2f,  euler==%2.2f  theta==%2.2f " % (x_total/44, y_total/44, euler_x, theta))
-    # #print(imu.read_euler()[0])
-    # #print("Duration: {}".format(t2 - t1))
-    # print(timedelta(t2, t1))
-    res2 = {
-        "t": str(t2),
+    left_prev, right_prev, delta_x, delta_y, theta, curr_time = update_position(left_prev, right_prev, theta, curr_time)
+    x_total = x_total + delta_x
+    y_total = y_total + delta_y
+    # print("x= %2.2f, y=%2.2f, dx= %2.2f, dy=%2.2f, euler==%2.2f  theta==%2.2f " % (x_total/44, y_total/44,x/44, y/44, euler_x,theta))
+    print("x= %2.2f, y=%2.2f, theta==%2.2f " % (x_total/44, y_total/44, theta))
+    data.append({
+        "t": str(curr_time),
         "x": x_total,
         "y": y_total
-    }
-    data.append(res2)
+    })
     
     # Prepare for next iteration
     i += 1
-    t1 = t2
     time.sleep(.1)
 
 print(data[1])
@@ -156,5 +142,3 @@ if saving_data:
     # Save Out
     with open('data.pkl', 'wb') as f:
         pickle.dump(data, f)
-
-# run file python3 -m measure.measure_return_3

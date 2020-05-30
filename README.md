@@ -1,5 +1,22 @@
 # imu-positioning
 
+## Sensor - Returned Measurements  
+Magnet x:  
+Magnet y:  
+Magnet z:  
+Euler Heading: Dir w/ 0 being North 90 East, 180 South, 270 West  
+Euler Roll:  
+Euler Pitch: Angle up   
+Accel x:  
+Accel y:  
+Accel z:  
+Euler x:  
+Euler y:  
+Euler z:  
+Thermometer: Temperature in Celcius  
+Left Encoder: Odometer of left wheel  
+Right Encoder: Odometer of right wheel  
+
 ### Node Setup
 https://github.com/DexterInd/GoPiGo/tree/master/Software/NodeJS
 
