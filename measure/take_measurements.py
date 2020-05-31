@@ -22,7 +22,7 @@ import drive.routes as routes
 # Setup Manual Inputs (HARD CODES)
 test_drive_instr = routes.turn_series
 drive_name = 'sample_drive_3'
-write_header = False
+write_header = True
 file_out = 'turns_5_30.csv'
 
 # Setup Sensors
@@ -65,7 +65,7 @@ keys = ['drive name', 'time', 'left_enc', 'right_enc',
         'accel_x', 'accel_y', 'accel_z',
         'gyro_x', 'gyro_y', 'gyro_z',
         ]
-    
+
 with open(output_file_name, 'a') as f:
     dict_writer = csv.DictWriter(f, keys)
     if write_header:
