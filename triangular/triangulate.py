@@ -23,21 +23,22 @@ warnings.filterwarnings('ignore')
 
 cone_position_est = (34, 28)  # coordinates of sheet center
 camera_locs = [(34.5, 57.5), (0, 0), (69, 0)]  # tbd based on real locations
-distances = [38.75, 48.5, 25.5]  # just a made-up sample
+#distances = [38.75, 48.5, 25.5]  # just a made-up sample
 # find_position(cone_position_est, camera_locs, distances)
 
 #['48:60:5F:F5:1E:1E'],['34:2D:0D:9B:5A:5D'] ['88:9F:6F:BA:C6:31']
 # You can put your Bluetooth address here.  E.g: 'a4:70:d6:7d:ee:00'
-bt_addr     = {0:'DC:A6:32:30:AF:0C',
-               1:'DC:A6:32:11:E7:D3'
-              } 
+bt_addr     = {0:'DC:A6:32:11:E7:D3'}#,
+               #1:'DC:A6:32:30:AF:0C',
+               #2:'DC:A6:32:11:EB:A7',
+              #} 
 
-n           = {0:1.5, 1:1.5}
-c           = {0:0, 1:0}
-A0          = {0:0.05, 1:0.05}
-actual_dist = {0:100, 1:100}
-sum_error   = {0:0, 0:0}
-count       = {0:0, 0:0}
+n           = {0:1.5}#, 1:1.5, 2:1.5}
+c           = {0:0}#, 1:0, 2:0}
+A0          = {0:0.05}#, 1:0.05, 2:0.05}
+actual_dist = {0:100}#, 1:100, 2:100}
+sum_error   = {0:0}#, 1:0, 2:0}
+count       = {0:0}#, 1:0, 2:0}
 
 
 num_loop    = 30
@@ -116,7 +117,7 @@ def calc_distance(num_loop, bt_addr, n, c, A0, actual_dist, sum_error, count):
     #actual_dist = 37   #Static distance between transmitter and Receiver in cm
     #sum_error = 0
     #count = 0
-    #print(btrssi)
+    print(btrssi)
     distances = {}
     
     for k in btrssi:
@@ -130,7 +131,7 @@ def calc_distance(num_loop, bt_addr, n, c, A0, actual_dist, sum_error, count):
                 btr_val = float(btr.get_rssi())
             except:
                 btr_val = -999999
-            #print btr_val
+            print(btr_val)
             rssi_bt[k] = btr_val
         
         #if(rssi_bt1!=0 and i>10):                    #reduces initial false values of RSSI using initial delay of 10sec
@@ -162,7 +163,7 @@ def calc_distance(num_loop, bt_addr, n, c, A0, actual_dist, sum_error, count):
     
     for k in sorted(distances.keys()):
         distances_list.append(mean(distances[k]))
-    print 'distance_list', distances_list
+    print ('distance_list', distances_list)
     return distances_list
 
 
@@ -230,12 +231,16 @@ def main():
     duration       = int(args.duration)
     
     # calc_distance(num_loop, bt_addr, n, c, A0, actual_dist, sum_error, count)
-
+    btrssi = BluetoothRSSI(addr=bt_addr[0])
+    print(btrssi)
+    print(btrssi.get_rssi())
+    
+    '''
     ts = []
     x1 = []
     y1 = []
     print('starting time diff', time_diff.total_seconds())
-    while(time_diff.total_seconds() < (duration * 60)):
+    while(time_diff.total_seconds() < (duration)): #* 60)):
         
         ts.append(str(datetime.now()))
         
@@ -252,7 +257,7 @@ def main():
         #print x1
         #print y1
     
-        time.sleep(10)
+        #time.sleep(10)
         temp_fin_time = datetime.now()
     
         time_diff = temp_fin_time - temp_st_time
@@ -265,9 +270,10 @@ def main():
         for i in range(len(ts)):
             file_writer.writerow([ts[i], x1[i],y1[i]])
         
-    print 'Total time: ', str(time_diff)
+    print ('Total time: ', str(time_diff))
 
     # plot_graph(x1,y1,x2,y2)
+    '''
 
     
 if __name__ == '__main__':

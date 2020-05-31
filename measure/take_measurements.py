@@ -71,4 +71,4 @@ with open(output_file_name, 'a') as f:
     if write_header:
         dict_writer.writeheader()
     dict_writer.writerows(data)
-    # pickle.dump(data, f)
+    #pickle.dump(data, f)

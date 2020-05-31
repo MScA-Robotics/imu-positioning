@@ -1,5 +1,5 @@
 import easygopigo3 as easy
-import di_sensors
+#import di_sensors
 import time
 
 gpg = easy.EasyGoPiGo3()
