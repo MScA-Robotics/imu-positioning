@@ -9,6 +9,7 @@ from __future__ import division
 import multiprocessing
 import time
 import atexit
+import pickle
 from datetime import datetime, timedelta
 
 from easygopigo3 import EasyGoPiGo3
@@ -61,7 +62,6 @@ def update_encoders(left_prev, right_prev, mu_prev):
      theta_bar_prime - theta_bar
     :return: current internal pose - x_bar_t
     """
-
     # Initialize data needed
     new_reading = get_reading(read_mag=False)
 
@@ -69,75 +69,49 @@ def update_encoders(left_prev, right_prev, mu_prev):
     left_delta = new_reading.get('left_enc') - left_prev
     right_delta = new_reading.get('right_enc') - right_prev
 
-    lr_delta = left_enc - right_enc
+    r = (left_delta + right_delta) / 2
 
-    lr_avg = (left_delta + right_delta) / 2
+    rotation_scale = 6
+    theta_delta = (left_delta - right_delta) / rotation_scale
+    x_delta = math.sin((mu_prev[2] + theta_delta) * 0.0174533) * r
+    y_delta = math.cos((mu_prev[2] + theta_delta) * 0.0174533) * r
 
-    if abs(lr_delta) > 2:
-        
-        theta_delta = euler_x - euler_x_prev
-    else:
-        theta_delta = 0
+    mu = mu_prev + np.array([x_delta, y_delta, theta_delta]).T
 
-    theta_prev = mu_prev[2, 0]
-    theta = theta_prev + theta_delta
-    x = math.sin(theta*0.0174533) * lr_avg
-    y = math.cos(theta*0.0174533) * lr_avg
-    read_distance = 0
-    res = {
-        "x": x,
-        "y": y
-    }
-    # print(res)
-    return left_enc, right_enc, x, y, res, euler_x, theta
+    return left_enc, right_enc, mu
 
-# Todo:
-#  Initial Conditions are packed into pose 'mu'
+
 # Initialize Measurements for drive
 i = 0
 t1 = datetime.now()
 data = []
-right_prev = 0
-left_prev = 0
-x_total = init_x
-y_total = init_y
-euler = imu.read_euler()
-euler_x_prev = euler[0]
-theta_prev = 0
+int_pose = np.array([init_x, init_y, 0]).T
+
+left_enc = get_reading().get('left_enc')
+right_enc = get_reading().get('right_enc')
+
+# euler = imu.read_euler()
+# euler_x_prev = euler[0]
 
 # Start Driving
 drive_process.start()
 
 # Measure while driving loop
 while i < 100:
-    # Execute
-    # #print_reading()
-    # data.append(get_reading())
-    
     t2 = datetime.now()
-    left_enc, right_enc, x, y, res, euler_x, theta = get_position(right_prev, left_prev, euler_x_prev, theta_prev)
-    euler_x_prev = euler_x
-    theta_prev = theta
-    right_prev = right_enc
-    left_prev = left_enc
-    x_total = x_total + x
-    y_total = y_total + y
-    # #print("x= %2.2f, y=%2.2f, dx= %2.2f, dy=%2.2f, euler==%2.2f  theta==%2.2f " % (x_total/44, y_total/44,x/44, y/44, euler_x,theta))
-    print("x= %2.2f, y=%2.2f,  euler==%2.2f  theta==%2.2f " % (x_total/44, y_total/44, euler_x, theta))
-    # #print(imu.read_euler()[0])
-    # #print("Duration: {}".format(t2 - t1))
-    # print(timedelta(t2, t1))
-    res2 = {
+    left_enc, right_enc, int_pose = update_encoders(left_enc, right_enc, int_pose)
+
+    data.append({
         "t": str(t2),
-        "x": x_total,
-        "y": y_total
-    }
-    data.append(res2)
-    
+        "x": int_pose[0],
+        "y": int_pose[1],
+        "theta": int_pose[2],
+    })
+
     # Prepare for next iteration
     i += 1
     t1 = t2
-    time.sleep(.1)
+    time.sleep(.0625)
 
 print(data[1])
     
@@ -158,19 +132,19 @@ df.to_csv("df.csv", index=False)
 
 if attempt_return:
     # #print(imu.read_euler()[0])
-    distance_back = math.sqrt(x_total*x_total+y_total*y_total)
-
-    direction_back = 90 - theta + 90 + 90
-
-    print("Back direction= %8.2f dist=%8.2f" % (direction_back, distance_back/44))
-
-    gpg.turn_degrees(direction_back)
-    print("back inc= %8.2f back cm=%8.2f" % (distance_back / 44, distance_back / 44 * 2.54))
-    # ##gpg.drive_cm(distance_back/44*2.54)
+    # distance_back = math.sqrt(x_total*x_total+y_total*y_total)
+    #
+    # direction_back = 90 - theta + 90 + 90
+    #
+    # print("Back direction= %8.2f dist=%8.2f" % (direction_back, distance_back/44))
+    #
+    # gpg.turn_degrees(direction_back)
+    # print("back inc= %8.2f back cm=%8.2f" % (distance_back / 44, distance_back / 44 * 2.54))
+    # gpg.drive_cm(distance_back/44*2.54)
     gpg.stop()  
     # Save Out
     # with open('data.pkl', 'wb') as f:
-        # pickle.dump(data, f)
+    #     pickle.dump(data, f)
 
 if saving_data:
     # Save Out
