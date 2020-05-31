@@ -66,19 +66,20 @@ def update_encoders(left_prev, right_prev, mu_prev):
     new_reading = get_reading(read_mag=False)
 
     # Update Encoders
+    scale = 0.0577
     left_delta = new_reading.get('left_enc') - left_prev
     right_delta = new_reading.get('right_enc') - right_prev
 
-    r = (left_delta + right_delta) / 2
+    r = scale * (left_delta + right_delta) / 2
 
-    rotation_scale = 6
+    rotation_scale = 5.5
     theta_delta = (left_delta - right_delta) / rotation_scale
-    x_delta = math.sin((mu_prev[2] + theta_delta) * 0.0174533) * r
-    y_delta = math.cos((mu_prev[2] + theta_delta) * 0.0174533) * r
+    x_delta = math.sin((mu_prev[2] + theta_delta) * np.pi / 180) * r
+    y_delta = math.cos((mu_prev[2] + theta_delta) * np.pi / 180) * r
 
     mu = mu_prev + np.array([x_delta, y_delta, theta_delta]).T
 
-    return left_enc, right_enc, mu
+    return new_reading.get('left_enc'), new_reading.get('right_enc'), mu
 
 
 # Initialize Measurements for drive
@@ -100,7 +101,8 @@ drive_process.start()
 while i < 100:
     t2 = datetime.now()
     left_enc, right_enc, int_pose = update_encoders(left_enc, right_enc, int_pose)
-
+    print(int_pose)
+    
     data.append({
         "t": str(t2),
         "x": int_pose[0],
