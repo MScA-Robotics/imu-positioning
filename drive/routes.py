@@ -5,6 +5,19 @@ from easygopigo3 import EasyGoPiGo3
 gpg = EasyGoPiGo3()
 
 
+def drive_demo_1(q=None):
+    gpg.turn_degrees(-30)
+    if q:
+        q.put(['turn', -30])
+    gpg.drive_cm(50)
+    if q:
+        q.put(['drive', 50])
+    gpg.turn_degrees(-45)
+    if q:
+        q.put(['turn', -45])
+    gpg.stop()
+
+
 def drive_inst_1():
     """Drive Instructions 1 (for demo path 1)
 
