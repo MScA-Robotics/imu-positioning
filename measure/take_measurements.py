@@ -49,7 +49,7 @@ while i < 15:
     i += 1
     if not q.empty():
         print(q.get())
-    time.sleep(2)
+    time.sleep(0.5)
 
 # Wrap up processes, print and save
 drive_process.join()

@@ -17,6 +17,13 @@ def drive_and_queue(action_type, value, q):
 
 
 def drive_demo_1(q=None):
+    drive_and_queue('turn', 30, q)
+    drive_and_queue('drive', 30, q)
+    drive_and_queue('turn', 45, q)
+    gpg.stop()
+
+
+def drive_demo_2(q=None):
     drive_and_queue('turn', -30, q)
     drive_and_queue('drive', -30, q)
     drive_and_queue('turn', -45, q)
