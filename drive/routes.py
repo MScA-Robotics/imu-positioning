@@ -5,6 +5,31 @@ from easygopigo3 import EasyGoPiGo3
 gpg = EasyGoPiGo3()
 
 
+def drive_and_queue(action_type, value, q):
+    if action_type == 'drive':
+        gpg.drive_cm(value)
+
+    if action_type == 'drive':
+        gpg.turn_degrees(value)
+
+    if q:
+        q.put([action_type, value])
+
+
+def drive_demo_1(q=None):
+    drive_and_queue('turn', 30, q)
+    drive_and_queue('drive', 30, q)
+    drive_and_queue('turn', 45, q)
+    gpg.stop()
+
+
+def drive_demo_2(q=None):
+    drive_and_queue('turn', -30, q)
+    drive_and_queue('drive', -30, q)
+    drive_and_queue('turn', -45, q)
+    gpg.stop()
+
+
 def drive_inst_1():
     """Drive Instructions 1 (for demo path 1)
 
