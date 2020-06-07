@@ -18,7 +18,7 @@ from drive.utils import get_reading
 import drive.routes as routes
 
 # Setup Manual Inputs (HARD CODES)
-test_drive_instr = routes.drive_demo_1
+test_drive_instr = routes.drive_mini_1
 drive_name = 'sample_drive_3'
 saving_data = False
 write_header = True
@@ -42,14 +42,14 @@ drive_process.start()
 
 i = 0
 data = []
-while i < 15:
+while i < 20:
     reading = get_reading()
     reading['drive name'] = drive_name
     data.append(reading)
     i += 1
-    if not q.empty():
+    while not q.empty():
         print(q.get())
-    time.sleep(0.5)
+    time.sleep(.5)
 
 # Wrap up processes, print and save
 drive_process.join()
@@ -71,4 +71,3 @@ if saving_data:
         if write_header:
             dict_writer.writeheader()
         dict_writer.writerows(data)
-

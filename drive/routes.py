@@ -9,7 +9,7 @@ def drive_and_queue(action_type, value, q):
     if action_type == 'drive':
         gpg.drive_cm(value)
 
-    if action_type == 'drive':
+    if action_type == 'turn':
         gpg.turn_degrees(value)
 
     if q:
