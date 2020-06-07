@@ -30,7 +30,7 @@ def drive_demo_2(q=None):
     gpg.stop()
 
 
-def drive_inst_1():
+def drive_inst_1(q=None):
     """Drive Instructions 1 (for demo path 1)
 
     Go 50cm, right turn, 50cm, left turn, 50cm
@@ -38,15 +38,15 @@ def drive_inst_1():
     """
     process_name = multiprocessing.current_process().name
     print("Starting Drive Process {}".format(process_name))
-    gpg.drive_cm(50)
-    gpg.turn_degrees(90)
-    gpg.drive_cm(50)
-    gpg.turn_degrees(-90)
-    gpg.drive_cm(50)
+    drive_and_queue('drive', 50, q)
+    drive_and_queue('turn', 90, q)
+    drive_and_queue('drive', 50, q)
+    drive_and_queue('turn', -90, q)
+    drive_and_queue('drive', 50, q)
     gpg.stop()
 
 
-def drive_inst_2():
+def drive_inst_2(q=None):
     """Drive Instructions 2
 
     Drive in a square with side 75cm
@@ -55,12 +55,12 @@ def drive_inst_2():
     process_name = multiprocessing.current_process().name
     print("Starting Drive Process {}".format(process_name))
     for _ in range(4):
-        gpg.drive_cm(75)
-        gpg.turn_degrees(90)
+        drive_and_queue('drive', 75, q)
+        drive_and_queue('turn', 90, q)
     gpg.stop()
 
 
-def drive_inst_3():
+def drive_inst_3(q=None):
     """Drive Instructions for demo path 2
 
     Go 125cm, left 90 degrees, 50cm, right 90 degrees, 125cm
@@ -68,15 +68,15 @@ def drive_inst_3():
     """
     process_name = multiprocessing.current_process().name
     print("Starting Drive Process {}".format(process_name))
-    gpg.drive_cm(150)
-    gpg.turn_degrees(-90)
-    gpg.drive_cm(50)
-    gpg.turn_degrees(-90)
-    gpg.drive_cm(150)
+    drive_and_queue('drive', 150, q)
+    drive_and_queue('turn', -90, q)
+    drive_and_queue('drive', 50, q)
+    drive_and_queue('turn', -90, q)
+    drive_and_queue('drive', 150, q)
     gpg.stop()
 
 
-def drive_mini_1():
+def drive_mini_1(q=None):
     """Drive Instructions mini 1
 
     Make a few short drives with 45 degree turns
@@ -85,13 +85,13 @@ def drive_mini_1():
     process_name = multiprocessing.current_process().name
     print("Starting Drive Process {}".format(process_name))
     for _ in range(4):
-        gpg.drive_cm(10)
-        gpg.turn_degrees(45)
-    gpg.drive_cm(10)
+        drive_and_queue('drive', 10, q)
+        drive_and_queue('turn', 45, q)
+    drive_and_queue('drive', 10, q)
     gpg.stop()
 
 
-def drive_mini_2():
+def drive_mini_2(q=None):
     """Drive Instructions mini 2
 
     Drive 30cm with a 45 degree right turn in the middle
@@ -100,15 +100,15 @@ def drive_mini_2():
     process_name = multiprocessing.current_process().name
     print("Starting Drive Process {}".format(process_name))
     time.sleep(1)
-    gpg.drive_cm(15)
+    drive_and_queue('drive', 15, q)
     time.sleep(1)
-    gpg.turn_degrees(45)
+    drive_and_queue('turn', 45, q)
     time.sleep(1)
-    gpg.drive_cm(15)
+    drive_and_queue('drive', 15, q)
     gpg.stop()
 
 
-def drive_pause_1():
+def drive_pause_1(q=None):
     """Drive Instructions with pause for rotation
 
     Drive 30cm with a 3 second pause then another 30 cm
@@ -116,13 +116,13 @@ def drive_pause_1():
     """
     process_name = multiprocessing.current_process().name
     print("Starting Drive Process {}".format(process_name))
-    gpg.drive_cm(30)
+    drive_and_queue('drive', 30, q)
     time.sleep(3)
-    gpg.drive_cm(30)
+    drive_and_queue('drive', 30, q)
     gpg.stop()
 
 
-def turn_series():
+def turn_series(q =None):
     """Test a series of rotations for tuning integration of encoders
 
     Make a series of turns that eventually go back to a common center
@@ -132,34 +132,34 @@ def turn_series():
     print("Starting Drive Process {}".format(process_name))
     scale = 1.66
     print("Starting 5 degree turn right")
-    gpg.turn_degrees(5 *  scale)
+    drive_and_queue('drive', 5 * scale, q)
     print("Completed turn")
     time.sleep(1.5)
     print("Starting 10 degree turn right")
-    gpg.turn_degrees(10 *  scale)
+    drive_and_queue('turn', 10 *  scale, q)
     print("Completed turn")
     time.sleep(1.5)
     print("Starting 30 degree turn right")
-    gpg.turn_degrees(30 *  scale)
+    drive_and_queue('turn', 30 *  scale, q)
     print("Completed turn")
     time.sleep(1.5)
     print("Starting 45 degree turn right")
-    gpg.turn_degrees(45 *  scale)
+    drive_and_queue('turn', 45 *  scale, q)
     print("Completed turn")
     time.sleep(1.5)
     print("Starting 90 degree turn right")
-    gpg.turn_degrees(90 *  scale)
+    drive_and_queue('turn', 90 *  scale, q)
     print("Completed turn")
     time.sleep(1.5)
     print("Starting 30 degree turn left")
-    gpg.turn_degrees(-30 *  scale)
+    drive_and_queue('turn', -30 *  scale, q)
     print("Completed turn")
     time.sleep(1.5)
     print("Starting 60 degree turn left")
-    gpg.turn_degrees(-60 *  scale)
+    drive_and_queue('turn', -60 *  scale, q)
     print("Completed turn")
     time.sleep(1.5)
     print("Starting 90 degree turn left")
-    gpg.turn_degrees(-90 *  scale)
+    drive_and_queue('turn', -90 *  scale, q)
     print("Completed turn")
     gpg.stop()
