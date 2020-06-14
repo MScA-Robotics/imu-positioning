@@ -12,6 +12,7 @@ import multiprocessing
 import time
 import atexit
 import math
+import json
 from datetime import datetime, timedelta
 
 from easygopigo3 import EasyGoPiGo3
@@ -106,6 +107,7 @@ while i < 100:
     time.sleep(.1)
 
 if draw_path:
+    # Save a plot and pandas generated csv
     plt.style.use('seaborn-whitegrid')
     df = pd.DataFrame(data)
     fig = plt.figure()
@@ -124,5 +126,5 @@ if draw_path:
 
 if saving_data:
     # Save Out
-    with open('data.pkl', 'wb') as f:
-        pickle.dump(data, f)
+    with open('data.json', 'wb') as f:
+        json.dump(data, f)

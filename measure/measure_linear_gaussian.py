@@ -1,15 +1,10 @@
 """Measure Position as a Gaussian, implementing 1/2 of KF
 
-This contains all of measure_gyro with changes being made to create
- matrices discussed in Probabilistic Robotics
+Starting as a modification of measure_gaussian, here we will step through the
+ linear kalman filter based upon Chapter 3 of Probabilistic Robotics and online
+ resources.
 
-nu - translational velocity
-omega - rotational velocity
-
-translation in a straight line (distance in cm - r) is lr_avg
-translational_vel = lr_avg / delta_time * delta_theta
-
-Run on linux  as 'python3 -m measure.measure_gaussian'
+Run on linux  as 'python3 -m measure.measure_linear_gaussian'
 """
 import sys
 import multiprocessing
@@ -20,7 +15,6 @@ from pprint import pprint
 from datetime import datetime, timedelta
 
 from easygopigo3 import EasyGoPiGo3
-from di_sensors.inertial_measurement_unit import InertialMeasurementUnit
 from drive.utils import get_reading
 from drive.control import drive_home, return_to_point
 import drive.routes as routes
@@ -40,11 +34,10 @@ attempt_return = False
 saving_data = False
 draw_path = True
 init_x, init_y = 0, 0
-# For test path 1 use init_x = 0,  init_y = 0 with drive_inst_1
+# For test path 1 use init_x = 0, init_y = 0 with drive_inst_1
 # For test path 2 use init_x = 250, init_y 50 with drive_inst_3
 
 # Setup Sensors
-imu = InertialMeasurementUnit(bus="GPG3_AD1")
 gpg = EasyGoPiGo3()
 gpg.reset_encoders()
 atexit.register(gpg.stop)
@@ -59,7 +52,19 @@ drive_process = multiprocessing.Process(
 
 
 # noinspection PyPep8Naming
-def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
+def update_linear_guassian(left_prev, right_prev, mu_prev, cov, time_prev):
+    """
+
+    nu is translational velocity in cm per second
+    omega is Rotational Velocity in radians per second
+
+    :param left_prev:
+    :param right_prev:
+    :param mu_prev:
+    :param cov:
+    :param time_prev:
+    :return:
+    """
     theta_prev = mu_prev[2, 0]
     # Initialize data needed
     new_reading = get_reading(read_mag=False)
@@ -70,7 +75,7 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
     left_delta = new_reading.get('left_enc') - left_prev
     right_delta = new_reading.get('right_enc') - right_prev
     # scale * average encoder advancement / time_elapsed
-    nu = scale * (left_delta + right_delta) / 2 / delta_time
+    nu = scale * (left_delta + right_delta) / (2 * delta_time)
 
     # Update theta based upon gyroscope
     omega = new_reading.get('gyro_y') * np.pi / 180
@@ -93,6 +98,7 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
     ])
     
     # What to plugin to alpha 1-4?
+    # Should we be adding time into here
     alpha_1, alpha_2, alpha_3, alpha_4 = 10e-7, 15e-7, 5e-7, 20e-7
     M_t_1_1 = alpha_1 * nu**2 + alpha_2 * omega**2
     M_t_2_2 = alpha_3 * nu**2 + alpha_4 * omega**2
@@ -155,7 +161,7 @@ while i < 100:
         "x": pose[0],
         "y": pose[1],
         "theta": pose[2],
-        "cov" : cov,
+        "cov": cov,
     })
 
     while not q.empty():
