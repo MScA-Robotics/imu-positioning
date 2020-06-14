@@ -2,10 +2,11 @@
 
 Working out of section 5.4 'Odometry Motion Model' in Probabilistic Robotics
 
+Turning is measured from the Odometer
+Distance is measured from the Odometer
+
 Run on linux  as 'python3 -m measure.measure_odometer'
 """
-from __future__ import print_function
-from __future__ import division
 import multiprocessing
 import time
 import atexit
@@ -39,9 +40,12 @@ gpg = EasyGoPiGo3()
 gpg.reset_encoders()
 atexit.register(gpg.stop)
 
+# Setup Standard Drive
+q = multiprocessing.Queue()
 drive_process = multiprocessing.Process(
     name='drive',
-    target=test_drive_instr
+    target=test_drive_instr,
+    args=(q,)
 )
 
 
@@ -87,12 +91,8 @@ i = 0
 t1 = datetime.now()
 data = []
 int_pose = np.array([init_x, init_y, 0]).T
-
 left_enc = get_reading().get('left_enc')
 right_enc = get_reading().get('right_enc')
-
-# euler = imu.read_euler()
-# euler_x_prev = euler[0]
 
 # Start Driving
 drive_process.start()
@@ -110,48 +110,35 @@ while i < 100:
         "theta": int_pose[2],
     })
 
+    while not q.empty():
+        print(q.get())
+
     # Prepare for next iteration
     i += 1
     t1 = t2
     time.sleep(.0625)
 
-print(data[1])
-    
+if draw_path:
+    plt.style.use('seaborn-whitegrid')
+    df = pd.DataFrame(data)
+    fig = plt.figure()
+    plt.plot(df.x, df.y, 'o', color='black')
+    fig.savefig('plot.png')
+    df.to_csv("df.csv", index=False)
 
-print("printing path")
-plt.style.use('seaborn-whitegrid')
-df = pd.DataFrame(data) 
-# 'lr_delta': -1, 'euler_x': 240.4375, 'left_enc': 2585, 'y': 4.216956575971679, 'theta': -32.5, 'x_delta': 4,
-#  'right_enc': 2586, 'x': -2.6864990668841138, 'y_delta': 6
-# print(df[1])
-print(df.head())
-# df.columns = ['lr_delta','euler_x',"left_enc","y",'theta','x_delta','right_enc','x','y_delta']
-fig = plt.figure()
-plt.plot(df.x, df.y, 'o', color='black')
-fig.savefig('plot.png')
-df.to_csv("df.csv", index=False)      
-
-
-if attempt_return:
-    # #print(imu.read_euler()[0])
-    # distance_back = math.sqrt(x_total*x_total+y_total*y_total)
-    #
-    # direction_back = 90 - theta + 90 + 90
-    #
-    # print("Back direction= %8.2f dist=%8.2f" % (direction_back, distance_back/44))
-    #
-    # gpg.turn_degrees(direction_back)
-    # print("back inc= %8.2f back cm=%8.2f" % (distance_back / 44, distance_back / 44 * 2.54))
-    # gpg.drive_cm(distance_back/44*2.54)
-    gpg.stop()  
-    # Save Out
-    # with open('data.pkl', 'wb') as f:
-    #     pickle.dump(data, f)
+# if attempt_return:
+#     print(imu.read_euler()[0])
+#     distance_back = math.sqrt(x_total * x_total + y_total * y_total)
+#
+#     direction_back = 90 - theta + 90 + 90
+#
+#     print("Back direction= %8.2f dist=%8.2f" % (direction_back, distance_back/44))
+#
+#     gpg.turn_degrees(direction_back)
+#     print("back inc= %8.2f back cm=%8.2f" % (distance_back / 44, distance_back / 44 * 2.54))
+#     gpg.drive_cm(distance_back/44*2.54)
 
 if saving_data:
     # Save Out
     with open('data.pkl', 'wb') as f:
         pickle.dump(data, f)
-
-# run file python3 -m measure.measure_return_3
-

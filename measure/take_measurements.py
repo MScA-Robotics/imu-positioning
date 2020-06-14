@@ -3,8 +3,6 @@
 This file is meant to be run from the root directory with -m module option
 python3 -m measure.take_measurements
 """
-from __future__ import print_function
-from __future__ import division
 import os
 import multiprocessing
 import time

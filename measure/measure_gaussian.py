@@ -11,8 +11,6 @@ translational_vel = lr_avg / delta_time * delta_theta
 
 Run on linux  as 'python3 -m measure.measure_gaussian'
 """
-from __future__ import print_function
-from __future__ import division
 import sys
 import multiprocessing
 import time
@@ -56,12 +54,16 @@ gpg = EasyGoPiGo3()
 gpg.reset_encoders()
 atexit.register(gpg.stop)
 
+# Setup Standard Drive
+q = multiprocessing.Queue()
 drive_process = multiprocessing.Process(
     name='drive',
-    target=test_drive_instr
+    target=test_drive_instr,
+    args=(q,)
 )
 
 
+# noinspection PyPep8Naming
 def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
     theta_prev = mu_prev[2, 0]
     # Initialize data needed
@@ -81,14 +83,12 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
     theta_new = theta_prev - omega * delta_time
     r = nu / omega if np.abs(omega) > 10e-6 else nu / 10e-6
 
-    # noinspection PyPep8Naming
     G_t = np.array([
         [1, 0, r * (np.cos(theta_new) - np.cos(theta_prev))],
         [0, 1, r * (np.sin(theta_new) - np.sin(theta_prev))],
         [0, 0, 1]
     ])
 
-    # noinspection PyPep8Naming
     V_t = np.array([
         [(-np.sin(theta_prev) + np.sin(theta_new)) / vt_omega,
          nu * (np.sin(theta_prev) - np.sin(theta_new)) / vt_omega**2 + (r * np.cos(theta_new) * delta_time)],
@@ -98,16 +98,14 @@ def update_position(left_prev, right_prev, mu_prev, cov, time_prev):
     ])
     
     # What to plugin to alpha 1-4?
-    # noinspection PyPep8Naming
     alpha_1, alpha_2, alpha_3, alpha_4 = 10e-7, 15e-7, 5e-7, 20e-7
     M_t_1_1 = alpha_1 * nu**2 + alpha_2 * omega**2
     M_t_2_2 = alpha_3 * nu**2 + alpha_4 * omega**2
     M_t = np.array([
         [M_t_1_1, 0],
-        [0 , M_t_2_2]
+        [0, M_t_2_2]
     ])
 
-    # noinspection PyPep8Naming
     try:
         Sigma = G_t.dot(cov).dot(G_t.T) + V_t.dot(M_t).dot(V_t.T)
     except:
@@ -165,32 +163,29 @@ while i < 100:
         "cov" : cov,
     })
 
+    while not q.empty():
+        print(q.get())
+
     # Prepare for next iteration
     i += 1
     time.sleep(.0625)
 
-print("printing path")
-plt.style.use('seaborn-whitegrid')
-df = pd.DataFrame(data)
-print(df.head())
+if draw_path:
+    plt.style.use('seaborn-whitegrid')
+    df = pd.DataFrame(data)
+    fig = plt.figure()
+    plt.plot(df.x, df.y, 'o', color='black')
+    fig.savefig('plot.png')
+    df.to_csv("df.csv", index=False)
 
-fig = plt.figure()
-plt.plot(df.x, df.y, 'o', color='black')
-fig.savefig('plot.png')
-df.to_csv("df.csv", index=False)
-
-if attempt_return:
-    # #print(imu.read_euler()[0])
-    distance_back = np.sqrt(x_total * x_total + y_total * y_total)
-
-    direction_back = 90 - theta + 90 + 90
-
-    print("Back direction= %8.2f dist=%8.2f" % (direction_back, distance_back / 44))
-
-    gpg.turn_degrees(direction_back)
-    print("back inc= %8.2f back cm=%8.2f" % (distance_back / 44, distance_back / 44 * 2.54))
-    # ##gpg.drive_cm(distance_back/44*2.54)
-    gpg.stop()
+# if attempt_return:
+#     distance_back = np.sqrt(x_total * x_total + y_total * y_total)
+#     direction_back = 90 - theta + 90 + 90
+#     print("Back direction= %8.2f dist=%8.2f" % (direction_back, distance_back / 44))
+#     gpg.turn_degrees(direction_back)
+#     print("back inc= %8.2f back cm=%8.2f" % (distance_back / 44, distance_back / 44 * 2.54))
+#     gpg.drive_cm(distance_back/44*2.54)
+#     gpg.stop()
 
 if saving_data:
     # Save Out
