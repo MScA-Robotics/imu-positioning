@@ -52,7 +52,7 @@ drive_process = multiprocessing.Process(
 
 
 # noinspection PyPep8Naming
-def update_linear_guassian(left_prev, right_prev, mu_prev, cov, time_prev):
+def update_position(left_prev, right_prev, vel_prev, mu_prev, cov, time_prev):
     """
 
     nu is translational velocity in cm per second
@@ -77,61 +77,55 @@ def update_linear_guassian(left_prev, right_prev, mu_prev, cov, time_prev):
     # scale * average encoder advancement / time_elapsed
     nu = scale * (left_delta + right_delta) / (2 * delta_time)
 
-    # Update theta based upon gyroscope
-    omega = new_reading.get('gyro_y') * np.pi / 180
-    vt_omega = omega if np.abs(omega) > 10e-8 else 10e-8
-    theta_new = theta_prev - omega * delta_time
-    r = nu / omega if np.abs(omega) > 10e-6 else nu / 10e-6
+    # TODO: Test the below decompositions, then refactor
+    accel_forward = new_reading.get('accel_z')
+    accel_side = new_reading.get('accel_x')
 
-    G_t = np.array([
-        [1, 0, r * (np.cos(theta_new) - np.cos(theta_prev))],
-        [0, 1, r * (np.sin(theta_new) - np.sin(theta_prev))],
-        [0, 0, 1]
+    nu_accel = vel_prev + delta_time * np.array([
+        [accel_forward * np.sin(theta_prev) + accel_side * np.cos(theta_prev)],
+        [accel_forward * np.cos(theta_prev) + accel_side * np.sin(theta_prev)]
     ])
 
-    V_t = np.array([
-        [(-np.sin(theta_prev) + np.sin(theta_new)) / vt_omega,
-         nu * (np.sin(theta_prev) - np.sin(theta_new)) / vt_omega**2 + (r * np.cos(theta_new) * delta_time)],
-        [(np.cos(theta_prev) - np.cos(theta_new)) / vt_omega,
-         -nu * (np.cos(theta_prev) - np.cos(theta_new)) / vt_omega**2 + (r * np.sin(theta_new) * delta_time)],
-        [0, delta_time]
-    ])
-    
-    # What to plugin to alpha 1-4?
-    # Should we be adding time into here
-    alpha_1, alpha_2, alpha_3, alpha_4 = 10e-7, 15e-7, 5e-7, 20e-7
-    M_t_1_1 = alpha_1 * nu**2 + alpha_2 * omega**2
-    M_t_2_2 = alpha_3 * nu**2 + alpha_4 * omega**2
-    M_t = np.array([
-        [M_t_1_1, 0],
-        [0, M_t_2_2]
-    ])
+    # TODO: Decompose back to velocity in forward direction
+    # Total velocity is L2 Norm
+    total_velocity = np.sqrt(nu_accel[0]**2 + nu_accel[1]**2)
 
-    try:
-        Sigma = G_t.dot(cov).dot(G_t.T) + V_t.dot(M_t).dot(V_t.T)
-    except:
-        Sigma = G_t.dot(cov).dot(G_t.T)
-        print("Unexpected error:", sys.exc_info()[0])
-        print(vt_omega)
-        print(theta_prev)
-        print(theta_new)
+    # Theta from Odometer
+    rotation_scale = 5.5
+    theta_od_delta = (left_delta - right_delta) / rotation_scale
+
+    # Theta from Gyroscope
+    omega = -new_reading.get('gyro_y') * np.pi / 180
+    theta_gy_delta = omega * delta_time
+    theta_new = theta_prev + theta_gy_delta
+
+    r_od = nu / omega if np.abs(omega) > 10e-6 else nu / 10e-6
+    r_sensor = nu_accel / omega if np.abs(omega) > 10e-6 else nu_accel / 10e-6
 
     mu_new = mu_prev + np.array([
+        [r_od * (np.sin(theta_new) - np.sin(theta_prev))],
+        [r_od * (np.cos(theta_prev) - np.cos(theta_new))],
+        [omega * delta_time]
+    ])
+
+    mu_sensors_prev = np.array([0, 0, 0]).T
+    mu_sensors_new = mu_sensors_prev + np.array([
         [r * (np.sin(theta_new) - np.sin(theta_prev))],
         [r * (np.cos(theta_prev) - np.cos(theta_new))],
         [omega * delta_time]
     ])
+
     if i % 10 == 0:
         print(mu_prev)
         print(mu_new)
         print(nu)
         print(omega)
-        pprint(M_t)
-        print(G_t)
-        pprint(V_t)
-        pprint(Sigma)
-    
-    return new_reading.get('left_enc'), new_reading.get('right_enc'), mu_new, Sigma, new_reading.get('time')
+
+    return (
+        new_reading.get('left_enc'), new_reading.get('right_enc'),
+        accel_velocity,
+        mu_new, Sigma, new_reading.get('time')
+    )
 
 
 # Initialize Measurements for drive
@@ -153,7 +147,9 @@ drive_process.start()
 # Measure while driving loop
 while i < 100:
     # mu is 3 x 1 pose
-    left_prev, right_prev, pose, cov, curr_time = update_position(left_prev, right_prev, pose, cov, curr_time)
+    left_prev, right_prev, vel_prev, pose, cov, curr_time = update_position(
+        left_prev, right_prev, pose, cov, curr_time
+    )
     # print("x= %2.2f, y=%2.2f, theta==%2.2f " % (pose[0], pose[1], pose[2]))
     # print(pose)
     data.append({
