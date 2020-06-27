@@ -5,6 +5,13 @@ Starting as a modification of measure_gaussian, here we will step through the
  resources.
 
 Run on linux  as 'python3 -m measure.measure_linear_gaussian'
+
+Manual Settings Area:
+  routes to choose:
+  drive_inst_1, drive_inst_2, drive_inst_3, drive_mini_1, drive_mini_2 drive_pause_1
+
+For test path 1 use init_x = 0, init_y = 0 with drive_inst_1
+For test path 2 use init_x = 250, init_y 50 with drive_inst_3
 """
 import sys
 import multiprocessing
@@ -18,10 +25,8 @@ from easygopigo3 import EasyGoPiGo3
 from drive.utils import get_reading
 from drive.control import drive_home, return_to_point
 import drive.routes as routes
-# some route names:
-# drive_inst_1, drive_inst_2, drive_inst_3, drive_mini_1, drive_mini_2 drive_pause_1
 
-# ## imports for plotting
+# imports for plotting
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -34,8 +39,6 @@ attempt_return = False
 saving_data = False
 draw_path = True
 init_x, init_y = 0, 0
-# For test path 1 use init_x = 0, init_y = 0 with drive_inst_1
-# For test path 2 use init_x = 250, init_y 50 with drive_inst_3
 
 # Setup Sensors
 gpg = EasyGoPiGo3()
@@ -52,90 +55,110 @@ drive_process = multiprocessing.Process(
 
 
 # noinspection PyPep8Naming
-def update_position(left_prev, right_prev, vel_prev, mu_prev, cov, time_prev):
-    """
+def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_prev, cov, time_prev):
+    """Update position using two sources of information; control and sensors.
+    The sensor data comes from the imu/gyroscope and the control comes from the
+    odometers.
 
     nu is translational velocity in cm per second
     omega is Rotational Velocity in radians per second
 
+    scales is a tuned parameter that turns the incoming odometer units to
+    centimeters.
+
     :param left_prev:
     :param right_prev:
-    :param mu_prev:
+    :param vel_prev:
+    :param mu_control_prev:
+    :param mu_sensor_prev:
     :param cov:
     :param time_prev:
     :return:
     """
-    theta_prev = mu_prev[2, 0]
-    # Initialize data needed
+    # Get new measurements
     new_reading = get_reading(read_mag=False)
     delta_time = (new_reading.get('time') - time_prev).total_seconds()
 
+    # Initialize
     # Get 'r' from encoders and scale to centimeters
+    theta_control_prev = mu_control_prev[2, 0]
+    theta_sensor_prev = mu_sensor_prev[2, 0]
     scale = 0.0577
     left_delta = new_reading.get('left_enc') - left_prev
     right_delta = new_reading.get('right_enc') - right_prev
     # scale * average encoder advancement / time_elapsed
-    nu = scale * (left_delta + right_delta) / (2 * delta_time)
+    nu_control = scale * (left_delta + right_delta) / (2 * delta_time)
 
     # TODO: Test the below decompositions, then refactor
     accel_forward = new_reading.get('accel_z')
     accel_side = new_reading.get('accel_x')
 
-    nu_accel = vel_prev + delta_time * np.array([
-        [accel_forward * np.sin(theta_prev) + accel_side * np.cos(theta_prev)],
-        [accel_forward * np.cos(theta_prev) + accel_side * np.sin(theta_prev)]
+    vel_now = vel_prev + delta_time * np.array([
+        [accel_forward * np.sin(theta_sensor_prev) + accel_side * np.cos(theta_sensor_prev)],
+        [accel_forward * np.cos(theta_sensor_prev) + accel_side * np.sin(theta_sensor_prev)]
     ])
 
     # TODO: Decompose back to velocity in forward direction
     # Total velocity is L2 Norm
-    total_velocity = np.sqrt(nu_accel[0]**2 + nu_accel[1]**2)
+    # nu_sensor?
+    nu_sensor = np.sqrt(vel_now[0]**2 + vel_now[1]**2)
 
     # Theta from Odometer
     rotation_scale = 5.5
-    theta_od_delta = (left_delta - right_delta) / rotation_scale
+    theta_delta_control = (left_delta - right_delta) / rotation_scale
+    theta_control_new = theta_control_prev + theta_delta_control
+    omega_control = theta_delta_control * np.pi / (180 * delta_time)
 
     # Theta from Gyroscope
-    omega = -new_reading.get('gyro_y') * np.pi / 180
-    theta_gy_delta = omega * delta_time
-    theta_new = theta_prev + theta_gy_delta
+    omega_sensor = -new_reading.get('gyro_y') * np.pi / 180
+    theta_delta_sensor = omega_sensor * delta_time
+    theta_sensor_new = theta_sensor_prev + theta_delta_sensor
 
-    r_od = nu / omega if np.abs(omega) > 10e-6 else nu / 10e-6
-    r_sensor = nu_accel / omega if np.abs(omega) > 10e-6 else nu_accel / 10e-6
+    r_control = nu_control / omega_control if np.abs(omega_control) > 10e-6 else nu_control / 10e-6
+    r_sensor = nu_sensor / omega_sensor if np.abs(omega_sensor) > 10e-6 else nu_sensor / 10e-6
 
-    mu_new = mu_prev + np.array([
-        [r_od * (np.sin(theta_new) - np.sin(theta_prev))],
-        [r_od * (np.cos(theta_prev) - np.cos(theta_new))],
-        [omega * delta_time]
+    mu_control_new = mu_control_prev + np.array([
+        [r_control * (np.sin(theta_control_new) - np.sin(theta_control_prev))],
+        [r_control * (np.cos(theta_control_prev) - np.cos(theta_control_new))],
+        [omega_control * delta_time]
     ])
 
-    mu_sensors_prev = np.array([0, 0, 0]).T
-    mu_sensors_new = mu_sensors_prev + np.array([
-        [r * (np.sin(theta_new) - np.sin(theta_prev))],
-        [r * (np.cos(theta_prev) - np.cos(theta_new))],
-        [omega * delta_time]
+    mu_sensor_new = mu_sensor_prev + np.array([
+        [r_sensor * (np.sin(theta_sensor_new) - np.sin(theta_sensor_prev))],
+        [r_sensor * (np.cos(theta_sensor_prev) - np.cos(theta_sensor_new))],
+        [omega_sensor * delta_time]
     ])
 
     if i % 10 == 0:
-        print(mu_prev)
-        print(mu_new)
-        print(nu)
-        print(omega)
+        print("Control", nu_control, omega_control)
+        print(mu_control_prev, mu_control_new)
+
+        print("Sensor", nu_sensor, omega_sensor)
+        print(mu_sensor_prev, mu_sensor_new)
 
     return (
-        new_reading.get('left_enc'), new_reading.get('right_enc'),
-        accel_velocity,
-        mu_new, Sigma, new_reading.get('time')
+        new_reading.get('left_enc'),
+        new_reading.get('right_enc'),
+        vel_now,
+        mu_control_new,
+        mu_sensor_new,
+        cov,  # Sigma
+        new_reading.get('time')
     )
 
 
 # Initialize Measurements for drive
 i = 0
 data = []
-pose = np.array([
+init_pose = np.array([
     [init_x],
     [init_y],
     [get_reading().get('euler_x') * np.pi / 180]
 ])
+pose_sensor = init_pose
+pose_control = init_pose
+
+velocity = np.array([0, 0]).T
 cov = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
 left_prev = 0
 right_prev = 0
@@ -147,16 +170,18 @@ drive_process.start()
 # Measure while driving loop
 while i < 100:
     # mu is 3 x 1 pose
-    left_prev, right_prev, vel_prev, pose, cov, curr_time = update_position(
-        left_prev, right_prev, pose, cov, curr_time
+    left_prev, right_prev, velocity, pose_control, pose_sensor, cov, curr_time = update_position(
+        left_prev, right_prev, velocity, pose_control, pose_sensor, cov, curr_time
     )
-    # print("x= %2.2f, y=%2.2f, theta==%2.2f " % (pose[0], pose[1], pose[2]))
     # print(pose)
     data.append({
         "t": str(curr_time),
-        "x": pose[0],
-        "y": pose[1],
-        "theta": pose[2],
+        "x_control": pose_control[0],
+        "y_control": pose_control[1],
+        "theta_control": pose_control[2],
+        "x_sensor": pose_sensor[0],
+        "y_sensor": pose_sensor[1],
+        "theta_sensor": pose_sensor[2],
         "cov": cov,
     })
 
@@ -172,7 +197,8 @@ if draw_path:
     plt.style.use('seaborn-whitegrid')
     df = pd.DataFrame(data)
     fig = plt.figure()
-    plt.plot(df.x, df.y, 'o', color='black')
+    plt.plot(df.x_sensor, df.y_sensor, 'o', color='blue')
+    plt.plot(df.x_control, df.y_control, 'o', color='green')
     fig.savefig('plot.png')
     df.to_csv("df.csv", index=False)
 
