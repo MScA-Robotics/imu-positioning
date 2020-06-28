@@ -90,14 +90,14 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
     nu_control = scale * (left_delta + right_delta) / (2 * delta_time)
 
     # TODO: Test the below decompositions, then refactor
-    accel_forward = new_reading.get('accel_z')
-    accel_side = new_reading.get('accel_x')
-
+    accel_forward = new_reading.get('accel_z') * 100
+    accel_side = new_reading.get('accel_x') * 100
+    
     vel_now = vel_prev + delta_time * np.array([
-        [accel_forward * np.sin(theta_sensor_prev) + accel_side * np.cos(theta_sensor_prev)],
-        [accel_forward * np.cos(theta_sensor_prev) + accel_side * np.sin(theta_sensor_prev)]
+        accel_forward * np.sin(theta_sensor_prev) + accel_side * np.cos(theta_sensor_prev),
+        accel_forward * np.cos(theta_sensor_prev) + accel_side * np.sin(theta_sensor_prev)
     ])
-
+    
     # TODO: Decompose back to velocity in forward direction
     # Total velocity is L2 Norm
     # nu_sensor?
@@ -158,7 +158,7 @@ init_pose = np.array([
 pose_sensor = init_pose
 pose_control = init_pose
 
-velocity = np.array([0, 0]).T
+velocity = np.array([0, 0])
 cov = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
 left_prev = 0
 right_prev = 0
