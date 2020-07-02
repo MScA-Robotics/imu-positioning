@@ -36,7 +36,7 @@ np.seterr(all='raise')
 # Setup Manual Inputs (HARD CODES)
 test_drive_instr = routes.drive_mini_1
 attempt_return = False
-saving_data = False
+saving_data = True
 draw_path = True
 init_x, init_y = 0, 0
 
@@ -150,6 +150,7 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
 # Initialize Measurements for drive
 i = 0
 data = []
+drive_messages = []
 init_pose = np.array([
     [init_x],
     [init_y],
@@ -175,18 +176,21 @@ while i < 100:
     )
     # print(pose)
     data.append({
-        "t": str(curr_time),
-        "x_control": pose_control[0],
-        "y_control": pose_control[1],
-        "theta_control": pose_control[2],
-        "x_sensor": pose_sensor[0],
-        "y_sensor": pose_sensor[1],
-        "theta_sensor": pose_sensor[2],
-        "cov": cov,
+        # "t": str(curr_time),
+        "t": curr_time.timestamp(),
+        "x_control": pose_control[0][0],
+        "y_control": pose_control[1][0],
+        "theta_control": pose_control[2][0],
+        "x_sensor": pose_sensor[0][0],
+        "y_sensor": pose_sensor[1][0],
+        "theta_sensor": pose_sensor[2][0],
+        # "cov": cov,
     })
 
     while not q.empty():
-        print(q.get())
+        message = q.get()
+        print(message)
+        drive_messages.append(message)
 
     # Prepare for next iteration
     i += 1
@@ -213,5 +217,8 @@ if draw_path:
 
 if saving_data:
     # Save Out
-    with open('data.json', 'wb') as f:
+    with open('data.json', 'w') as f:
         json.dump(data, f)
+        
+    with open('drive_messages.json', 'w') as f:
+        json.dump(drive_messages, f)

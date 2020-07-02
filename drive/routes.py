@@ -1,3 +1,4 @@
+from datetime import datetime
 import time
 import multiprocessing
 from easygopigo3 import EasyGoPiGo3
@@ -13,7 +14,7 @@ def drive_and_queue(action_type, value, q):
         gpg.turn_degrees(value)
 
     if q:
-        q.put([action_type, value])
+        q.put([action_type, value, datetime.now().timestamp()])
 
 
 def drive_demo_1(q=None):
