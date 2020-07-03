@@ -136,6 +136,13 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
         print("Sensor", nu_sensor, omega_sensor)
         print(mu_sensor_prev, mu_sensor_new)
 
+    velocities = {
+        'nu_control': nu_control,
+        'omega_control': omega_control,
+        'nu_sensor': nu_sensor,
+        'omega_sensor': omega_sensor,
+    }
+
     return (
         new_reading.get('left_enc'),
         new_reading.get('right_enc'),
@@ -143,7 +150,8 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
         mu_control_new,
         mu_sensor_new,
         cov,  # Sigma
-        new_reading.get('time')
+        new_reading.get('time'),
+        velocities
     )
 
 
@@ -171,7 +179,7 @@ drive_process.start()
 # Measure while driving loop
 while i < 100:
     # mu is 3 x 1 pose
-    left_prev, right_prev, velocity, pose_control, pose_sensor, cov, curr_time = update_position(
+    left_prev, right_prev, velocity, pose_control, pose_sensor, cov, curr_time, velocities = update_position(
         left_prev, right_prev, velocity, pose_control, pose_sensor, cov, curr_time
     )
     # print(pose)
@@ -184,7 +192,10 @@ while i < 100:
         "x_sensor": pose_sensor[0][0],
         "y_sensor": pose_sensor[1][0],
         "theta_sensor": pose_sensor[2][0],
-        # "cov": cov,
+        "nu_control": velocities.get('nu_control', 0),
+        "omega_control": velocities.get('omega_control', 0),
+        "nu_sensor": velocities.get('nu_sensor', 0),
+        "omega_sensor": velocities.get('omega_sensor', 0),
     })
 
     while not q.empty():

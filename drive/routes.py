@@ -6,7 +6,7 @@ from easygopigo3 import EasyGoPiGo3
 gpg = EasyGoPiGo3()
 
 
-def drive_and_queue(action_type, value, q):
+def drive_and_queue(action_type, value, q=None):
     if action_type == 'drive':
         gpg.drive_cm(value)
 
