@@ -108,22 +108,33 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
     rotation_scale = 5.5
     theta_delta_control = (left_delta - right_delta) / rotation_scale
     theta_control_new = theta_control_prev + theta_delta_control
-    omega_control = theta_delta_control /delta_time #* np.pi / (180 * delta_time)
+    omega_control = theta_delta_control / delta_time  # * np.pi / (180 * delta_time)
 
     # Theta from Gyroscope
-    omega_sensor = -new_reading.get('gyro_y') #* np.pi / 180
+    omega_sensor = -new_reading.get('gyro_y')  # * np.pi / 180
     theta_delta_sensor = omega_sensor * delta_time
     theta_sensor_new = theta_sensor_prev + theta_delta_sensor
 
-    r_control = nu_control / omega_control if np.abs(omega_control) > 10e-2 else nu_control / 10e-2
-    r_sensor = nu_sensor / omega_sensor if np.abs(omega_sensor) > 10e-2 else nu_sensor / 10e-2
+    if np.abs(omega_control) > 10e-4:
+        omega_control_star = omega_control
+        theta_control_new_star = theta_control_prev + theta_delta_control
+    else:
+        omega_control_star = 10e-4
+        theta_control_new_star = theta_control_prev + 10e-4 * delta_time
+
+    # vel = omega (0 ~ 10e-4) * r (inf ~ vel / 10e-4)
+
+    r_control = nu_control / omega_control_star
+    r_sensor = nu_sensor / omega_sensor if np.abs(omega_sensor) > 10e-6 else nu_sensor / 10e-6
+
+    # r_control = nu_control / omega_control_star if np.abs(omega_control) > 10e-6 else nu_control / 10e-6
+    # r_sensor = nu_sensor / omega_sensor if np.abs(omega_sensor) > 10e-6 else nu_sensor / 10e-6
     # r_control = nu_control * delta_time
     # r_sensor = nu_sensor * delta_time
-    
 
     mu_control_new = mu_control_prev + np.array([
-        [r_control * (np.sin(theta_control_new) - np.sin(theta_control_prev))],
-        [r_control * (np.cos(theta_control_prev) - np.cos(theta_control_new))],
+        [r_control * (np.sin(theta_control_new_star) - np.sin(theta_control_prev))],
+        [r_control * (np.cos(theta_control_prev) - np.cos(theta_control_new_star))],
         [omega_control * delta_time]
     ])
 
