@@ -84,11 +84,11 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
     # Get 'r' from encoders and scale to centimeters
     theta_control_prev = mu_control_prev[2, 0]
     theta_sensor_prev = mu_sensor_prev[2, 0]
-    scale = 0.0577
+    scale = 0.0577 * 20e-3  # Odometer units to centimeters, 20e-3 is magic number
     left_delta = new_reading.get('left_enc') - left_prev
     right_delta = new_reading.get('right_enc') - right_prev
     # scale * average encoder advancement / time_elapsed
-    nu_control = scale * (left_delta + right_delta) / (2 * delta_time)
+    nu_control = scale * (left_delta + right_delta) / (2 * delta_time)  # should be cm/s
 
     # TODO: Test the below decompositions, then refactor
     accel_forward = new_reading.get('accel_z') * 100
@@ -108,10 +108,10 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
     rotation_scale = 5.5
     theta_delta_control = (left_delta - right_delta) / rotation_scale
     theta_control_new = theta_control_prev + theta_delta_control
-    omega_control = theta_delta_control / delta_time  # * np.pi / (180 * delta_time)
+    omega_control = theta_delta_control * np.pi / (180 * delta_time)
 
     # Theta from Gyroscope
-    omega_sensor = -new_reading.get('gyro_y')  # * np.pi / 180
+    omega_sensor = -new_reading.get('gyro_y') * np.pi / 180
     theta_delta_sensor = omega_sensor * delta_time
     theta_sensor_new = theta_sensor_prev + theta_delta_sensor
 
@@ -223,11 +223,20 @@ while i < 100:
     time.sleep(.0625)
 
 if draw_path:
+    max = 0
+    for element in data:
+        if np.abs(element.get('x_control')) > max:
+            max = np.abs(element.get('x_control'))
+        if np.abs(element.get('y_control')) > max:
+            max = np.abs(element.get('y_control'))
+    
     # Save a plot and pandas generated csv
     plt.style.use('seaborn-whitegrid')
     df = pd.DataFrame(data)
     fig = plt.figure()
-    plt.plot(df.x_sensor, df.y_sensor, 'o', color='blue')
+    plt.xlim(-max * 1.1, max * 1.1)
+    plt.ylim(-max * 1.1, max * 1.1)
+    # plt.plot(df.x_sensor, df.y_sensor, 'o', color='blue')
     plt.plot(df.x_control, df.y_control, 'o', color='green')
     fig.savefig('plot.png')
     df.to_csv("df.csv", index=False)
