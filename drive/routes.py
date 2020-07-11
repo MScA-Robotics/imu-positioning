@@ -4,6 +4,7 @@ import multiprocessing
 from easygopigo3 import EasyGoPiGo3
 
 gpg = EasyGoPiGo3()
+scale = 1.125
 
 
 def drive_and_queue(action_type, value, q=None):
@@ -15,6 +16,10 @@ def drive_and_queue(action_type, value, q=None):
 
     if q:
         q.put([action_type, value, datetime.now().timestamp()])
+
+def forward_cal_1(q=None):
+    drive_and_queue('drive', 61 * scale, q)
+    gpg.stop()
 
 
 def drive_demo_1(q=None):

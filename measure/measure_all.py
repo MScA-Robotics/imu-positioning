@@ -34,7 +34,7 @@ import pandas as pd
 np.seterr(all='raise')
 
 # Setup Manual Inputs (HARD CODES)
-test_drive_instr = routes.drive_mini_1
+test_drive_instr = routes.forward_cal_1
 attempt_return = False
 saving_data = True
 draw_path = True
@@ -77,6 +77,7 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
     """
     # Get new measurements
     new_reading = get_reading(read_mag=False)
+    pprint(new_reading)
     delta_time = (new_reading.get('time') - time_prev).total_seconds()
 
     # Initialize
@@ -107,15 +108,18 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
     rotation_scale = 5.5
     theta_delta_control = (left_delta - right_delta) / rotation_scale
     theta_control_new = theta_control_prev + theta_delta_control
-    omega_control = theta_delta_control * np.pi / (180 * delta_time)
+    omega_control = theta_delta_control /delta_time #* np.pi / (180 * delta_time)
 
     # Theta from Gyroscope
-    omega_sensor = -new_reading.get('gyro_y') * np.pi / 180
+    omega_sensor = -new_reading.get('gyro_y') #* np.pi / 180
     theta_delta_sensor = omega_sensor * delta_time
     theta_sensor_new = theta_sensor_prev + theta_delta_sensor
 
-    r_control = nu_control / omega_control if np.abs(omega_control) > 10e-6 else nu_control / 10e-6
-    r_sensor = nu_sensor / omega_sensor if np.abs(omega_sensor) > 10e-6 else nu_sensor / 10e-6
+    r_control = nu_control / omega_control if np.abs(omega_control) > 10e-2 else nu_control / 10e-2
+    r_sensor = nu_sensor / omega_sensor if np.abs(omega_sensor) > 10e-2 else nu_sensor / 10e-2
+    # r_control = nu_control * delta_time
+    # r_sensor = nu_sensor * delta_time
+    
 
     mu_control_new = mu_control_prev + np.array([
         [r_control * (np.sin(theta_control_new) - np.sin(theta_control_prev))],
