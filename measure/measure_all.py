@@ -9,6 +9,8 @@ Run on linux  as 'python3 -m measure.measure_linear_gaussian'
 Manual Settings Area:
   routes to choose:
   drive_inst_1, drive_inst_2, drive_inst_3, drive_mini_1, drive_mini_2 drive_pause_1
+  
+  forward_cal_1
 
 For test path 1 use init_x = 0, init_y = 0 with drive_inst_1
 For test path 2 use init_x = 250, init_y 50 with drive_inst_3
@@ -34,7 +36,7 @@ import pandas as pd
 np.seterr(all='raise')
 
 # Setup Manual Inputs (HARD CODES)
-test_drive_instr = routes.forward_cal_1
+test_drive_instr = routes.drive_mini_1
 attempt_return = False
 saving_data = True
 draw_path = True
@@ -77,22 +79,22 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
     """
     # Get new measurements
     new_reading = get_reading(read_mag=False)
-    pprint(new_reading)
+    # pprint(new_reading)
     delta_time = (new_reading.get('time') - time_prev).total_seconds()
 
     # Initialize
     # Get 'r' from encoders and scale to centimeters
     theta_control_prev = mu_control_prev[2, 0]
     theta_sensor_prev = mu_sensor_prev[2, 0]
-    scale = 0.0577 * 20e-3  # Odometer units to centimeters, 20e-3 is magic number
+    scale = 0.0577 * 2 * 10e-3  # Odometer units to centimeters, 20e-3 is magic number
     left_delta = new_reading.get('left_enc') - left_prev
     right_delta = new_reading.get('right_enc') - right_prev
     # scale * average encoder advancement / time_elapsed
     nu_control = scale * (left_delta + right_delta) / (2 * delta_time)  # should be cm/s
 
     # TODO: Test the below decompositions, then refactor
-    accel_forward = new_reading.get('accel_z') * 100
-    accel_side = new_reading.get('accel_x') * 100
+    accel_forward = new_reading.get('accel_z') * 10
+    accel_side = new_reading.get('accel_x') * 10
     
     vel_now = vel_prev + delta_time * np.array([
         accel_forward * np.sin(theta_sensor_prev) + accel_side * np.cos(theta_sensor_prev),
@@ -111,7 +113,7 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
     omega_control = theta_delta_control * np.pi / (180 * delta_time)
 
     # Theta from Gyroscope
-    omega_sensor = -new_reading.get('gyro_y') * np.pi / 180
+    omega_sensor = -1 * new_reading.get('gyro_y') * np.pi / 180
     theta_delta_sensor = omega_sensor * delta_time
     theta_sensor_new = theta_sensor_prev + theta_delta_sensor
 
@@ -179,6 +181,7 @@ init_pose = np.array([
     [init_y],
     [get_reading().get('euler_x') * np.pi / 180]
 ])
+print(init_pose)
 pose_sensor = init_pose
 pose_control = init_pose
 
@@ -229,6 +232,10 @@ if draw_path:
             max = np.abs(element.get('x_control'))
         if np.abs(element.get('y_control')) > max:
             max = np.abs(element.get('y_control'))
+        if np.abs(element.get('x_sensor')) > max:
+            max = np.abs(element.get('x_sensor'))
+        if np.abs(element.get('y_sensor')) > max:
+            max = np.abs(element.get('y_sensor'))
     
     # Save a plot and pandas generated csv
     plt.style.use('seaborn-whitegrid')
@@ -236,8 +243,8 @@ if draw_path:
     fig = plt.figure()
     plt.xlim(-max * 1.1, max * 1.1)
     plt.ylim(-max * 1.1, max * 1.1)
-    # plt.plot(df.x_sensor, df.y_sensor, 'o', color='blue')
-    plt.plot(df.x_control, df.y_control, 'o', color='green')
+    plt.plot(df.y_sensor, df.x_sensor, 'o', color='blue')
+    plt.plot(df.y_control, df.x_control, 'o', color='green')
     fig.savefig('plot.png')
     df.to_csv("df.csv", index=False)
 
