@@ -1,0 +1,22 @@
+
+Without recording controls/backtracker return to starting position after random drive
+Setup for user to provide independent controls for demonstration
+
+Control-Velocity motion model that is independent from sensor (acceleratometer and gyroscope)
+Sensor-Velocity motion model (independent from control)
+EKF algorithm for independent velocity models
+
+Todo:
+Visualization during drive
+Plugin the EKF into real-time drive measurements (RT-EFK)
+
+Minor Todo: 
+Calibration
+ROS 
+
+Tuesday 7:00
+ROS Review
+Thursday 7:00
+Calibration Review -> RT-EKF
+Saturday ???
+Working Session for Real-Time Visualization and RT-EKF
