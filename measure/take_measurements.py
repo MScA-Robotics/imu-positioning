@@ -17,10 +17,10 @@ import drive.routes as routes
 
 # Setup Manual Inputs (HARD CODES)
 test_drive_instr = routes.drive_mini_1
-drive_name = 'sample_drive_3'
-saving_data = False
+drive_name = 'acceleration_sample_1'
+saving_data = True
 write_header = True
-file_out = 'turns_5_30.csv'
+file_out = 'accel_sample_7_19.csv'
 
 # Setup Sensors
 # imu = InertialMeasurementUnit(bus="GPG3_AD1")
@@ -36,27 +36,33 @@ drive_process = multiprocessing.Process(
     args=(q,)
 )
 
-drive_process.start()
+# drive_process.start()
 
 i = 0
 data = []
-while i < 20:
-    reading = get_reading()
+while i < 200:
+    # if i == 100:
+    #     drive_process.start()
+        
+    reading = get_reading(read_mag=False)
     reading['drive name'] = drive_name
     data.append(reading)
     i += 1
     while not q.empty():
         print(q.get())
-    time.sleep(.5)
+    time.sleep(.0625)
 
 # Wrap up processes, print and save
-drive_process.join()
+# drive_process.join()
 pprint(data)
 print('done')
 
 if saving_data:
     output_file_name = os.path.join(os.getcwd(), 'offline', 'data', file_out)
     # keys = data[0].keys()
+    for rec in data:
+        rec['time'] = rec.get('time').timestamp()
+    
     keys = ['drive name', 'time', 'left_enc', 'right_enc',
             'euler_x', 'euler_y', 'euler_z',
             'mag_x', 'mag_y', 'mag_z',

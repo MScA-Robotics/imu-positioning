@@ -40,48 +40,52 @@ def print_reading():
 
 
 def get_reading(**kwargs):
-    if 'read_mag' not in kwargs:
-        kwargs['read_mag'] = True
+    try:
+        if 'read_mag' not in kwargs:
+            kwargs['read_mag'] = True
+            
+        res = {}
         
-    res = {}
-    
-    if kwargs.get('read_mag'):
-        mag = imu.read_magnetometer()
+        if kwargs.get('read_mag'):
+            mag = imu.read_magnetometer()
+            res.update({
+                "mag_x": mag[0],
+                "mag_y": mag[1],
+                "mag_z": mag[2],
+            })
+            euler = imu.read_euler()
+            res.update({
+                "euler_x": euler[0],
+                "euler_y": euler[1],
+                "euler_z": euler[2],
+            })
+        
+        gyro = imu.read_gyroscope()
         res.update({
-            "mag_x": mag[0],
-            "mag_y": mag[1],
-            "mag_z": mag[2],
+            "gyro_x": gyro[0],
+            "gyro_y": gyro[1],
+            "gyro_z": gyro[2],
         })
-        euler = imu.read_euler()
+        
+        accel = imu.read_accelerometer()
         res.update({
-            "euler_x": euler[0],
-            "euler_y": euler[1],
-            "euler_z": euler[2],
+            "accel_x": accel[0],
+            "accel_y": accel[1],
+            "accel_z": accel[2],
         })
+        # temp = imu.read_temperature()
+        encoder = gpg.read_encoders()
+        now = datetime.now()
+        res.update({
+            "left_enc": encoder[0],
+            "right_enc": encoder[1],
+            'time': now,
+        })
+    except OSError as e:
+        print('OS Error, getting second reading', e)
+        res = get_reading(**kwargs)
     
-    gyro = imu.read_gyroscope()
-    res.update({
-        "gyro_x": gyro[0],
-        "gyro_y": gyro[1],
-        "gyro_z": gyro[2],
-    })
-    
-    accel = imu.read_accelerometer()
-    res.update({
-        "accel_x": accel[0],
-        "accel_y": accel[1],
-        "accel_z": accel[2],
-    })
-    # temp = imu.read_temperature()
-    encoder = gpg.read_encoders()
-    now = datetime.now()
-    res.update({
-        "left_enc": encoder[0],
-        "right_enc": encoder[1],
-        'time': now,
-    })
-    
-    return res
+    return res 
 
 
 if __name__ == "__main__":
