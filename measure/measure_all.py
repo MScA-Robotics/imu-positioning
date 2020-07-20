@@ -93,9 +93,10 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
     nu_control = scale * (left_delta + right_delta) / (2 * delta_time)  # should be cm/s
 
     # TODO: Test the below decompositions, then refactor
-    accel_forward = new_reading.get('accel_z') * 10
-    accel_side = new_reading.get('accel_x') * 10
-    
+    # Calibration from 7/19 [0.554, -0.235, 1.755]
+    accel_forward = (new_reading.get('accel_z') - 1.755) 
+    accel_side = (new_reading.get('accel_x') - 0.554)
+        
     vel_now = vel_prev + delta_time * np.array([
         accel_forward * np.sin(theta_sensor_prev) + accel_side * np.cos(theta_sensor_prev),
         accel_forward * np.cos(theta_sensor_prev) + accel_side * np.sin(theta_sensor_prev)
@@ -104,7 +105,8 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
     # TODO: Decompose back to velocity in forward direction
     # Total velocity is L2 Norm
     # nu_sensor?
-    nu_sensor = np.sqrt(vel_now[0]**2 + vel_now[1]**2)
+    # nu_sensor = np.sqrt(vel_now[0]**2 + vel_now[1]**2)
+    nu_sensor = np.abs(np.sin(theta_sensor_prev) * vel_now[0]) + np.abs(np.cos(theta_sensor_prev) * vel_now[1])
 
     # Theta from Odometer
     rotation_scale = 5.5
@@ -124,10 +126,16 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
         omega_control_star = 10e-4
         theta_control_new_star = theta_control_prev + 10e-4 * delta_time
 
-    # vel = omega (0 ~ 10e-4) * r (inf ~ vel / 10e-4)
-
     r_control = nu_control / omega_control_star
-    r_sensor = nu_sensor / omega_sensor if np.abs(omega_sensor) > 10e-6 else nu_sensor / 10e-6
+
+    if np.abs(omega_sensor) > 10e-4:
+        omega_sensor_star = omega_sensor
+        theta_sensor_new_star = theta_sensor_prev + theta_delta_sensor
+    else:
+        omega_sensor_star = 10e-4
+        theta_sensor_new_star = theta_sensor_prev + 10e-4 * delta_time
+
+    r_sensor = nu_sensor / omega_sensor_star
 
     # r_control = nu_control / omega_control_star if np.abs(omega_control) > 10e-6 else nu_control / 10e-6
     # r_sensor = nu_sensor / omega_sensor if np.abs(omega_sensor) > 10e-6 else nu_sensor / 10e-6
@@ -141,8 +149,8 @@ def update_position(left_prev, right_prev, vel_prev, mu_control_prev, mu_sensor_
     ])
 
     mu_sensor_new = mu_sensor_prev + np.array([
-        [r_sensor * (np.sin(theta_sensor_new) - np.sin(theta_sensor_prev))],
-        [r_sensor * (np.cos(theta_sensor_prev) - np.cos(theta_sensor_new))],
+        [r_sensor * (np.sin(theta_sensor_new_star) - np.sin(theta_sensor_prev))],
+        [r_sensor * (np.cos(theta_sensor_prev) - np.cos(theta_sensor_new_star))],
         [omega_sensor * delta_time]
     ])
 
