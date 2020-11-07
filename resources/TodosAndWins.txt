@@ -10,7 +10,7 @@ Todo:
 Visualization during drive
 Plugin the EKF into real-time drive measurements (RT-EFK)
 
-Minor Todo: 
+Other Todo:
 Calibration
 ROS 
 
@@ -20,3 +20,25 @@ Thursday 7:00
 Calibration Review -> RT-EKF
 Saturday ???
 Working Session for Real-Time Visualization and RT-EKF
+
+- Setup lidar on GoPiGo Robot - Working with Robopeak Frame Grabber
+ We will need to create our own program to receive data stream from sensor.
+ tty/USB0 was the port for getting data from the lidar
+
+Tuesday 7:00
+Move Kalman filter into live robot program
+Thursday 7:00
+Visualization aspects
+
+Saturday ???
+Working Session for Real-Time Visualization and RT-EKF
+
+SLAM/Future TODO
+ROS Review
+Gazebo and ARGoS Setup
+Create lidar program for gpg to access
+
+IMU TODO
+Move Kalman filter into live robot program
+Standardize/Centralize calibrations
+Visualize density of prediction - layer in covariance to show contour plot

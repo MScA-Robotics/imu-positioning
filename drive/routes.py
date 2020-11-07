@@ -17,6 +17,7 @@ def drive_and_queue(action_type, value, q=None):
     if q:
         q.put([action_type, value, datetime.now().timestamp()])
 
+
 def forward_cal_1(q=None):
     drive_and_queue('drive', 61 * scale, q)
     gpg.stop()
